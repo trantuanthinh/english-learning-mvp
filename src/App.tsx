@@ -216,8 +216,8 @@ export default function App() {
 
                                     <div className="space-y-6">
                                         {selectedLesson.quiz.map((q, idx) => {
-                                            const isAnswered = selectedAnswers[q.id] !== undefined;
-                                            const isCorrect = selectedAnswers[q.id] === q.correctIndex;
+                                            // const isAnswered = selectedAnswers[q.id] !== undefined;
+                                            // const isCorrect = selectedAnswers[q.id] === q.correctIndex;
 
                                             return (
                                                 <div key={q.id} className="p-4 space-y-3 border bg-slate-800/50 border-slate-800 rounded-xl">

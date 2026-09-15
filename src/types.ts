@@ -1,11 +1,6 @@
-export type Track = 'vocabulary' | 'grammar' | 'pronunciation';
-export type Difficulty = 'beginner' | 'intermediate' | 'advanced';
-export type QuestionType =
-    | 'multiple-choice'
-    | 'fill-blank'
-    | 'error-correction'
-    | 'listening'
-    | 'speaking';
+export type Track = "vocabulary" | "grammar" | "pronunciation";
+export type Difficulty = "beginner" | "intermediate" | "advanced";
+export type QuestionType = "multiple-choice" | "fill-blank" | "error-correction" | "listening" | "speaking";
 
 export interface Topic {
     id: string;
@@ -14,7 +9,6 @@ export interface Topic {
     description?: string;
 }
 
-// --- Base Question Metadata ---
 export interface BaseQuestion {
     id: string;
     track: Track;
@@ -26,17 +20,16 @@ export interface BaseQuestion {
     tags?: string[];
 }
 
-// --- Question Type Models ---
 export interface MultipleChoiceQuestion extends BaseQuestion {
-    type: 'multiple-choice';
+    type: "multiple-choice";
     question: string;
     options: string[];
     correctIndex: number;
 }
 
 export interface FillBlankQuestion extends BaseQuestion {
-    type: 'fill-blank';
-    question: string; // e.g. "She _____ to school every day."
+    type: "fill-blank";
+    question: string;
     acceptedAnswers: string[];
     caseSensitive?: boolean;
 }
@@ -44,31 +37,28 @@ export interface FillBlankQuestion extends BaseQuestion {
 export interface Segment {
     id: string;
     text: string;
-    label?: string; // e.g., "A", "B", "C"
+    label?: string;
 }
 
 export interface ErrorCorrectionQuestion extends BaseQuestion {
-    type: 'error-correction';
-    prompt: string; // e.g., "Identify the error and type the correction:"
+    type: "error-correction";
+    prompt: string;
     segments: Segment[];
     correctSegmentId: string;
     acceptedCorrections: string[];
 }
 
 export interface ListeningQuestion extends BaseQuestion {
-    type: 'listening';
+    type: "listening";
     question: string;
-    audio: {
-        text?: string; // Used for Web Speech API Synthesis
-        url?: string;  // Priority audio URL if provided
-    };
+    audio: {text?: string; url?: string;};
     options: string[];
     correctIndex: number;
 }
 
 export interface SpeakingQuestion extends BaseQuestion {
     id: string;
-    type: 'speaking';
+    type: "speaking";
     promptText: string;
     targetPhonetics?: string;
     sampleAudioUrl?: string;
@@ -81,7 +71,12 @@ export type Question =
     | ListeningQuestion
     | SpeakingQuestion;
 
-// --- Lesson Model ---
+export interface VocabularyItem {
+    word: string;
+    meaning: string;
+    phonetic?: string;
+}
+
 export interface Lesson {
     id: string;
     title: string;
@@ -91,13 +86,12 @@ export interface Lesson {
     description: string;
     content: {
         theory: string;
-        vocabularyList?: Array<{word: string; meaning: string; phonetic?: string;}>;
+        vocabularyList?: VocabularyItem[];
         examples?: string[];
     };
-    questionIds: string[]; // References Central Question Bank
+    questionIds: string[];
 }
 
-// --- Cheatsheet Models ---
 export interface GrammarCheatsheetItem {
     id: string;
     topicId: string;
@@ -134,7 +128,6 @@ export interface PronunciationCheatsheetItem {
     commonMistakes?: string[];
 }
 
-// --- User Progress & History ---
 export interface ExamResult {
     id: string;
     timestamp: number;
@@ -143,8 +136,9 @@ export interface ExamResult {
     correctAnswersCount: number;
     trackScores: Record<Track, number>;
     topicScores: Record<string, {total: number; correct: number;}>;
-    userAnswers: Record<string, {answer: any; isCorrect: boolean;}>;
+    userAnswers: Record<string, {answer: unknown; isCorrect: boolean;}>;
 }
+
 export interface QuestionAttempt {
     questionId: string;
     answer: unknown;
@@ -162,13 +156,15 @@ export interface UserProgress {
     version: 1;
     completedLessonIds: string[];
     quizScores: Record<string, number>;
-    questionStats: Record<string, {
-        attempts: number;
-        correctCount: number;
-        lastAttemptTimestamp: number;
-    }>;
+    questionStats: Record<
+        string,
+        {
+            attempts: number;
+            correctCount: number;
+            lastAttemptTimestamp: number;
+        }
+    >;
     examHistory: ExamResult[];
-    // thêm optional, không đổi version
     questionAttempts?: QuestionAttempt[];
     flashcardProgress?: Record<string, FlashcardProgress>;
 }

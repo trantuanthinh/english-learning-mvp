@@ -1,43 +1,92 @@
-// src/storage.ts
-import type {UserProgress} from './types';
+import type {ExamResult, UserProgress} from './types';
 
 const STORAGE_KEY = 'ENGLISH_LEARNING_PROGRESS_V1';
 
 const DEFAULT_PROGRESS: UserProgress = {
-  completedLessonIds: [],
-  quizScores: {},
+    version: 1,
+    completedLessonIds: [],
+    quizScores: {},
+    questionStats: {},
+    examHistory: [],
 };
 
-export const getProgress = (): UserProgress => {
-  try {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : DEFAULT_PROGRESS;
-  } catch (e) {
-    console.error('Failed to load progress', e);
+function migrateProgress(raw: unknown): UserProgress {
+    const data = raw as Partial<UserProgress> & {completedLessonIds?: string[]; quizScores?: Record<string, number>};
+
+    return {
+        version: 1,
+        completedLessonIds: data.completedLessonIds ?? [],
+        quizScores: data.quizScores ?? {},
+        questionStats: data.questionStats ?? {},
+        examHistory: data.examHistory ?? [],
+    };
+}
+
+export function getProgress(): UserProgress {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            const migrated = migrateProgress(parsed);
+
+            // Re-save if new fields were missing (backwards-compatible migration)
+            if (!parsed.questionStats || !parsed.examHistory) {
+                saveProgress(migrated);
+            }
+
+            return migrated;
+        }
+    } catch (error) {
+        console.error('Failed to parse progress from localStorage:', error);
+    }
+
     return DEFAULT_PROGRESS;
-  }
-};
+}
 
-export const saveProgress = (progress: UserProgress): void => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
-  } catch (e) {
-    console.error('Failed to save progress', e);
-  }
-};
+export function saveProgress(progress: UserProgress): void {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    } catch (error) {
+        console.error('Failed to save progress:', error);
+    }
+}
 
-export const updateLessonComplete = (lessonId: string, score: number): UserProgress => {
-  const current = getProgress();
-  const completedLessonIds = Array.from(new Set([...current.completedLessonIds, lessonId]));
-  const quizScores = { ...current.quizScores, [lessonId]: score };
-  
-  const updated: UserProgress = {
-    ...current,
-    completedLessonIds,
-    quizScores,
-    lastStudiedLessonId: lessonId
-  };
-  
-  saveProgress(updated);
-  return updated;
-};
+export function updateLessonComplete(lessonId: string, score?: number): UserProgress {
+    const progress = getProgress();
+    if (!progress.completedLessonIds.includes(lessonId)) {
+        progress.completedLessonIds.push(lessonId);
+    }
+    if (score !== undefined) {
+        progress.quizScores[lessonId] = score;
+    }
+    saveProgress(progress);
+    return progress;
+}
+
+export function recordQuestionAttempt(
+    questionId: string,
+    isCorrect: boolean
+): UserProgress {
+    const progress = getProgress();
+    const current = progress.questionStats[questionId] || {
+        attempts: 0,
+        correctCount: 0,
+        lastAttemptTimestamp: 0,
+    };
+
+    progress.questionStats[questionId] = {
+        attempts: current.attempts + 1,
+        correctCount: current.correctCount + (isCorrect ? 1 : 0),
+        lastAttemptTimestamp: Date.now(),
+    };
+
+    saveProgress(progress);
+    return progress;
+}
+
+export function recordExamResult(result: ExamResult): UserProgress {
+    const progress = getProgress();
+    progress.examHistory.unshift(result);
+    saveProgress(progress);
+    return progress;
+}

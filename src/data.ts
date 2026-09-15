@@ -1,7 +1,18 @@
-// src/data.ts
-import {GRAMMAR_DATA} from "./mock/GRAMMAR";
-import {PRONUNCIATION_DATA} from "./mock/PRONUNCIATION";
-import {VOCABULARY_DATA} from "./mock/VOCABULARY";
-import type {Lesson} from "./types";
+import {GRAMMAR_CHEATSHEET, PRONUNCIATION_CHEATSHEET, VOCABULARY_CHEATSHEET} from './mock/CHEATSHEET';
+import {GRAMMAR_DATA} from './mock/GRAMMAR';
+import {QUESTIONS} from './mock/QUESTIONS';
+import {TOPICS, TOPIC_MAP} from './mock/TOPICS';
+import {PRONUNCIATION_DATA} from './mock/PRONUNCIATION';
+import {VOCABULARY_DATA} from './mock/VOCABULARY';
+import type {Lesson} from './types';
 
 export const LESSONS_DATA: Lesson[] = [...PRONUNCIATION_DATA, ...GRAMMAR_DATA, ...VOCABULARY_DATA];
+export const QUESTION_BANK = QUESTIONS;
+
+export {
+    TOPICS,
+    TOPIC_MAP,
+    GRAMMAR_CHEATSHEET,
+    VOCABULARY_CHEATSHEET,
+    PRONUNCIATION_CHEATSHEET,
+};

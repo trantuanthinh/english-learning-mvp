@@ -1,0 +1,3889 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+public/
+  favicon.svg
+  icons.svg
+src/
+  assets/
+    hero.png
+    react.svg
+    vite.svg
+  components/
+    quiz/
+      renderers/
+        ErrorCorrectionRenderer.tsx
+        FillBlankRenderer.tsx
+        ListeningRenderer.tsx
+        MultipleChoiceRenderer.tsx
+        SpeakingRenderer.tsx
+      QuestionRenderer.tsx
+  features/
+    cheatsheat/
+      CheatsheetView.tsx
+    exam/
+      ExamBuilder.tsx
+      ExamResultView.tsx
+    practice/
+      PracticeConfig.tsx
+      PracticeSession.tsx
+  mock/
+    CHEATSHEET.ts
+    GRAMMAR.ts
+    PRONUNCIATION.ts
+    QUESTIONS.ts
+    TOPICS.ts
+    VOCABULARY.ts
+  services/
+    examGenerator.ts
+    questionBank.ts
+    scoring.ts
+  App.css
+  App.tsx
+  data.ts
+  index.css
+  main.tsx
+  storage.ts
+  style.css
+  types.ts
+.gitignore
+eslint.config.js
+index.html
+package.json
+README.md
+tsconfig.app.json
+tsconfig.json
+tsconfig.node.json
+vite.config.ts
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/components/quiz/renderers/ErrorCorrectionRenderer.tsx">
+// src/components/quiz/renderers/ErrorCorrectionRenderer.tsx
+import React from 'react';
+import type {ErrorCorrectionQuestion} from '../../../types';
+
+interface Props {
+    question: ErrorCorrectionQuestion;
+    value?: {segmentId: string; correction: string;};
+    onChange: (val: {segmentId: string; correction: string;}) => void;
+    disabled?: boolean;
+}
+
+export const ErrorCorrectionRenderer: React.FC<Props> = ({
+    question,
+    value = {segmentId: '', correction: ''},
+    onChange,
+    disabled,
+}) => {
+    const handleSelectSegment = (segmentId: string) => {
+        if (disabled) return;
+        onChange({...value, segmentId});
+    };
+
+    const handleCorrectionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        onChange({...value, correction: e.target.value});
+    };
+
+    return (
+        <div className="space-y-6">
+            <p className="text-zinc-900 dark:text-zinc-100 font-medium">
+                {question.prompt}
+            </p>
+
+            {/* Segment Selector */}
+            <div className="flex flex-wrap items-center gap-2 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-200 dark:border-zinc-700">
+                {question.segments.map((seg) => {
+                    const isSelected = value.segmentId === seg.id;
+                    return (
+                        <button
+                            key={seg.id}
+                            type="button"
+                            disabled={disabled}
+                            onClick={() => handleSelectSegment(seg.id)}
+                            className={`inline-flex flex-col items-center px-3 py-2 rounded-md transition-all ${isSelected
+                                ? 'bg-blue-600 text-white font-semibold ring-2 ring-blue-500 ring-offset-2'
+                                : 'bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-300 dark:border-zinc-700'
+                                }`}
+                        >
+                            <span>{seg.text}</span>
+                            {seg.label && (
+                                <span
+                                    className={`text-[10px] mt-0.5 font-bold ${isSelected ? 'text-blue-100' : 'text-zinc-400'
+                                        }`}
+                                >
+                                    ({seg.label})
+                                </span>
+                            )}
+                        </button>
+                    );
+                })}
+            </div>
+
+            {/* Correction Input */}
+            {value.segmentId && (
+                <div className="space-y-2">
+                    <label
+                        htmlFor="correction-input"
+                        className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                    >
+                        Provide the correct replacement for the selected part:
+                    </label>
+                    <input
+                        id="correction-input"
+                        type="text"
+                        disabled={disabled}
+                        value={value.correction}
+                        onChange={handleCorrectionChange}
+                        placeholder="Type correct spelling or phrase..."
+                        className="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                </div>
+            )}
+        </div>
+    );
+};
+</file>
+
+<file path="src/components/quiz/renderers/FillBlankRenderer.tsx">
+// src/components/quiz/renderers/FillBlankRenderer.tsx
+import React from 'react';
+import type {FillBlankQuestion} from '../../../types';
+
+interface Props {
+    question: FillBlankQuestion;
+    value?: string;
+    onChange: (val: string) => void;
+    disabled?: boolean;
+}
+
+export const FillBlankRenderer: React.FC<Props> = ({
+    question,
+    value = '',
+    onChange,
+    disabled,
+}) => {
+    return (
+        <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                {question.question}
+            </h3>
+            <input
+                type="text"
+                disabled={disabled}
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder="Type your answer here..."
+                className="w-full px-4 py-3 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none text-base"
+            />
+        </div>
+    );
+};
+</file>
+
+<file path="src/components/quiz/renderers/ListeningRenderer.tsx">
+// src/components/quiz/renderers/ListeningRenderer.tsx
+import React, {useState} from 'react';
+import type {ListeningQuestion} from '../../../types';
+
+interface Props {
+    question: ListeningQuestion;
+    value?: number;
+    onChange: (index: number) => void;
+    disabled?: boolean;
+}
+
+export const ListeningRenderer: React.FC<Props> = ({
+    question,
+    value,
+    onChange,
+    disabled,
+}) => {
+    const [isPlaying, setIsPlaying] = useState(false);
+
+    const handlePlayAudio = () => {
+        if (isPlaying) return;
+
+        if (question.audio.url) {
+            const audio = new Audio(question.audio.url);
+            setIsPlaying(true);
+            audio.play();
+            audio.onended = () => setIsPlaying(false);
+        } else if (question.audio.text && 'speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(question.audio.text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.9;
+            utterance.onstart = () => setIsPlaying(true);
+            utterance.onend = () => setIsPlaying(false);
+            utterance.onerror = () => setIsPlaying(false);
+            window.speechSynthesis.speak(utterance);
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <div className="flex items-center gap-4 p-4 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-900">
+                <button
+                    type="button"
+                    onClick={handlePlayAudio}
+                    disabled={isPlaying}
+                    aria-label="Play audio snippet"
+                    className="flex items-center justify-center w-12 h-12 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white transition-all disabled:opacity-50"
+                >
+                    {isPlaying ? '🔊' : '▶'}
+                </button>
+                <div>
+                    <h4 className="font-semibold text-indigo-950 dark:text-indigo-200">
+                        Audio Snippet
+                    </h4>
+                    <p className="text-xs text-indigo-700 dark:text-indigo-400">
+                        Click play to hear the sentence before choosing your answer.
+                    </p>
+                </div>
+            </div>
+
+            <p className="text-zinc-900 dark:text-zinc-100 font-medium">
+                {question.question}
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {question.options.map((opt, idx) => {
+                    const isSelected = value === idx;
+                    return (
+                        <button
+                            key={idx}
+                            type="button"
+                            disabled={disabled}
+                            onClick={() => onChange(idx)}
+                            className={`p-4 text-left rounded-lg border transition-all ${isSelected
+                                ? 'border-blue-600 bg-blue-50 dark:bg-blue-950/30 text-blue-950 dark:text-blue-100 font-semibold ring-2 ring-blue-500'
+                                : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200'
+                                }`}
+                        >
+                            <span className="font-bold mr-2">{String.fromCharCode(65 + idx)}.</span>
+                            {opt}
+                        </button>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
+</file>
+
+<file path="src/components/quiz/renderers/MultipleChoiceRenderer.tsx">
+// src/components/quiz/renderers/MultipleChoiceRenderer.tsx
+import React from "react";
+import type {MultipleChoiceQuestion} from "../../../types";
+
+interface Props {
+    question: MultipleChoiceQuestion;
+    value?: number;
+    onChange: (index: number) => void;
+    disabled?: boolean;
+}
+
+export const MultipleChoiceRenderer: React.FC<Props> = ({question, value, onChange, disabled}) => {
+    return (
+        <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{question.question}</h3>
+            <div className="space-y-2.5">
+                {question.options.map((option, idx) => {
+                    const isSelected = value === idx;
+                    return (
+                        <button
+                            key={idx}
+                            type="button"
+                            disabled={disabled}
+                            onClick={() => onChange(idx)}
+                            className={`w-full p-4 text-left rounded-lg border transition-all ${isSelected
+                                ? "border-blue-600 bg-blue-50 dark:bg-blue-950/30 text-blue-950 dark:text-blue-100 font-semibold ring-2 ring-blue-500"
+                                : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200"
+                                }`}>
+                            <span className="font-bold mr-3">{String.fromCharCode(65 + idx)}.</span>
+                            {option}
+                        </button>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
+</file>
+
+<file path="src/components/quiz/renderers/SpeakingRenderer.tsx">
+// src/components/quiz/renderers/SpeakingRenderer.tsx
+import React, {useRef, useState} from 'react';
+import type {SpeakingQuestion} from '../../../types';
+
+interface Props {
+    question: SpeakingQuestion;
+    value?: {completed: boolean; recordingUrl?: string;};
+    onChange: (val: {completed: boolean; recordingUrl?: string;}) => void;
+    disabled?: boolean;
+}
+
+export const SpeakingRenderer: React.FC<Props> = ({
+    question,
+    value,
+    onChange,
+    disabled,
+}) => {
+    const [isRecording, setIsRecording] = useState(false);
+    const [audioUrl, setAudioUrl] = useState<string | undefined>(value?.recordingUrl);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const chunksRef = useRef<Blob[]>([]);
+
+    const startRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+            mediaRecorderRef.current = new MediaRecorder(stream);
+            chunksRef.current = [];
+
+            mediaRecorderRef.current.ondataavailable = (e) => {
+                if (e.data.size > 0) chunksRef.current.push(e.data);
+            };
+
+            mediaRecorderRef.current.onstop = () => {
+                const blob = new Blob(chunksRef.current, {type: 'audio/webm'});
+                const url = URL.createObjectURL(blob);
+                setAudioUrl(url);
+                onChange({completed: true, recordingUrl: url});
+            };
+
+            mediaRecorderRef.current.start();
+            setIsRecording(true);
+        } catch (err) {
+            console.warn('Microphone access denied or unsupported:', err);
+            // Fallback completion without audio recording
+            onChange({completed: true});
+        }
+    };
+
+    const stopRecording = () => {
+        if (mediaRecorderRef.current && isRecording) {
+            mediaRecorderRef.current.stop();
+            mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
+            setIsRecording(false);
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            <div className="p-6 bg-amber-50 dark:bg-amber-950/20 rounded-xl border border-amber-200 dark:border-amber-900/40 text-center">
+                <span className="text-xs uppercase font-bold tracking-wider text-amber-700 dark:text-amber-400 block mb-2">
+                    Read Aloud Prompt
+                </span>
+                <blockquote className="text-xl font-bold text-zinc-900 dark:text-zinc-100 italic">
+                    "{question.promptText}"
+                </blockquote>
+                {question.targetPhonetics && (
+                    <p className="text-sm text-zinc-500 font-mono mt-2">
+                        /{question.targetPhonetics}/
+                    </p>
+                )}
+            </div>
+
+            <div className="flex flex-col items-center justify-center gap-4 py-4">
+                {!isRecording ? (
+                    <button
+                        type="button"
+                        disabled={disabled}
+                        onClick={startRecording}
+                        className="px-6 py-3 rounded-full bg-red-600 hover:bg-red-700 text-white font-semibold transition-all shadow-md hover:shadow-lg disabled:opacity-50 flex items-center gap-2"
+                    >
+                        <span>🎤</span>
+                        {audioUrl ? 'Record Again' : 'Start Recording'}
+                    </button>
+                ) : (
+                    <button
+                        type="button"
+                        onClick={stopRecording}
+                        className="px-6 py-3 rounded-full bg-zinc-800 dark:bg-zinc-200 text-white dark:text-zinc-900 font-semibold transition-all flex items-center gap-2 animate-pulse"
+                    >
+                        <span>⏹</span>
+                        Stop Recording
+                    </button>
+                )}
+
+                {audioUrl && (
+                    <div className="w-full max-w-md mt-2 flex flex-col items-center gap-2">
+                        <span className="text-xs text-zinc-500 font-medium">Your Recording Playback:</span>
+                        <audio controls src={audioUrl} className="w-full" />
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+</file>
+
+<file path="src/components/quiz/QuestionRenderer.tsx">
+import type {Question} from "../../types";
+import {ErrorCorrectionRenderer} from "./renderers/ErrorCorrectionRenderer";
+import {FillBlankRenderer} from "./renderers/FillBlankRenderer";
+import {ListeningRenderer} from "./renderers/ListeningRenderer";
+import {MultipleChoiceRenderer} from "./renderers/MultipleChoiceRenderer";
+import {SpeakingRenderer} from "./renderers/SpeakingRenderer";
+
+
+interface QuestionRendererProps {
+    question: Question;
+    userAnswer: any;
+    onAnswerChange: (answer: any) => void;
+    showFeedback?: boolean;
+    disabled?: boolean;
+}
+
+export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
+    question,
+    userAnswer,
+    onAnswerChange,
+    showFeedback = false,
+    disabled = false,
+}) => {
+    return (
+        <div className="w-full bg-white dark:bg-zinc-900 rounded-xl p-6 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+            <div className="flex items-center justify-between gap-3 mb-4">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+                    {question.track} • {question.type.replace('-', ' ')}
+                </span>
+                <span className="text-xs font-medium text-zinc-500 capitalize">
+                    {question.difficulty}
+                </span>
+            </div>
+
+            {question.type === 'multiple-choice' && (
+                <MultipleChoiceRenderer
+                    question={question}
+                    value={userAnswer}
+                    onChange={onAnswerChange}
+                    disabled={disabled}
+                />
+            )}
+
+            {question.type === 'fill-blank' && (
+                <FillBlankRenderer
+                    question={question}
+                    value={userAnswer}
+                    onChange={onAnswerChange}
+                    disabled={disabled}
+                />
+            )}
+
+            {question.type === 'error-correction' && (
+                <ErrorCorrectionRenderer
+                    question={question}
+                    value={userAnswer}
+                    onChange={onAnswerChange}
+                    disabled={disabled}
+                />
+            )}
+
+            {question.type === 'listening' && (
+                <ListeningRenderer
+                    question={question}
+                    value={userAnswer}
+                    onChange={onAnswerChange}
+                    disabled={disabled}
+                />
+            )}
+
+            {question.type === 'speaking' && (
+                <SpeakingRenderer
+                    question={question}
+                    value={userAnswer}
+                    onChange={onAnswerChange}
+                    disabled={disabled}
+                />
+            )}
+
+            {showFeedback && question.explanation && (
+                <div className="mt-5 p-4 rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60 text-sm text-blue-900 dark:text-blue-200">
+                    <strong className="font-semibold block mb-1">Explanation:</strong>
+                    {question.explanation}
+                </div>
+            )}
+        </div>
+    );
+};
+</file>
+
+<file path="src/features/cheatsheat/CheatsheetView.tsx">
+import React, {useMemo, useState} from 'react';
+import {
+    GRAMMAR_CHEATSHEET,
+    PRONUNCIATION_CHEATSHEET,
+    VOCABULARY_CHEATSHEET,
+} from '../../data';
+import type {Track} from '../../types';
+
+export const CheatsheetView: React.FC = () => {
+    const [activeTrack, setActiveTrack] = useState<Track>('grammar');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+    const query = searchQuery.toLowerCase().trim();
+
+    const filteredGrammar = useMemo(() => {
+        if (!query) return GRAMMAR_CHEATSHEET;
+        return GRAMMAR_CHEATSHEET.filter((item) =>
+            [item.title, item.rule, ...item.usage, ...(item.signalWords || []), ...(item.commonMistakes || []), ...item.examples]
+                .join(' ')
+                .toLowerCase()
+                .includes(query)
+        );
+    }, [query]);
+
+    const filteredVocabulary = useMemo(() => {
+        if (!query) return VOCABULARY_CHEATSHEET;
+        return VOCABULARY_CHEATSHEET.filter((group) =>
+            [group.category, ...group.items.map((i) => `${i.word} ${i.meaning} ${i.example || ''} ${i.notes || ''}`)]
+                .join(' ')
+                .toLowerCase()
+                .includes(query)
+        );
+    }, [query]);
+
+    const filteredPronunciation = useMemo(() => {
+        if (!query) return PRONUNCIATION_CHEATSHEET;
+        return PRONUNCIATION_CHEATSHEET.filter((item) =>
+            [item.soundOrTopic, item.description, ...(item.examples || []), ...(item.commonMistakes || [])]
+                .join(' ')
+                .toLowerCase()
+                .includes(query)
+        );
+    }, [query]);
+
+    const toggleExpand = (id: string) => {
+        setExpandedIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const trackLabels: Record<Track, string> = {
+        grammar: 'Ngữ pháp',
+        vocabulary: 'Từ vựng',
+        pronunciation: 'Phát âm',
+    };
+
+    return (
+        <div className="space-y-6 max-w-4xl mx-auto">
+            <div>
+                <h1 className="text-2xl font-bold text-slate-900">Tra cứu nhanh (Cheatsheet)</h1>
+                <p className="text-slate-500 text-sm mt-1">Quên gì? Tra ngay công thức, từ vựng và mẹo phát âm.</p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between">
+                <div className="flex bg-slate-100 p-1 rounded-xl w-full sm:w-auto" role="tablist">
+                    {(['grammar', 'vocabulary', 'pronunciation'] as Track[]).map((t) => (
+                        <button
+                            key={t}
+                            role="tab"
+                            aria-selected={activeTrack === t}
+                            onClick={() => setActiveTrack(t)}
+                            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                                activeTrack === t
+                                    ? 'bg-white text-slate-900 shadow-sm'
+                                    : 'text-slate-500 hover:text-slate-900'
+                            }`}
+                        >
+                            {trackLabels[t]}
+                        </button>
+                    ))}
+                </div>
+
+                <input
+                    type="search"
+                    placeholder="Tìm kiếm quy tắc, từ khóa, âm..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    aria-label="Search cheatsheet"
+                    className="w-full sm:w-72 px-4 py-2.5 text-sm rounded-xl border border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+            </div>
+
+            <div className="space-y-3">
+                {activeTrack === 'grammar' && filteredGrammar.map((item) => {
+                    const isOpen = expandedIds.has(item.id) || !!query;
+                    return (
+                        <article
+                            key={item.id}
+                            className="rounded-2xl border border-slate-200/80 bg-white overflow-hidden"
+                        >
+                            <button
+                                type="button"
+                                onClick={() => toggleExpand(item.id)}
+                                className="w-full flex items-center justify-between p-5 text-left hover:bg-slate-50 transition-colors"
+                                aria-expanded={isOpen}
+                            >
+                                <div>
+                                    <h3 className="text-base font-bold text-slate-900">{item.title}</h3>
+                                    <p className="text-xs text-slate-500 mt-0.5">{item.rule}</p>
+                                </div>
+                                <span className="text-slate-400 text-lg ml-4 shrink-0">{isOpen ? '−' : '+'}</span>
+                            </button>
+
+                            {isOpen && (
+                                <div className="px-5 pb-5 space-y-3 text-sm text-slate-700 border-t border-slate-100 pt-4">
+                                    {item.structure && (
+                                        <p><strong className="text-slate-900">Cấu trúc:</strong> {item.structure}</p>
+                                    )}
+                                    <div>
+                                        <strong className="text-slate-900">Cách dùng:</strong>
+                                        <ul className="mt-1 list-disc list-inside space-y-0.5">
+                                            {item.usage.map((u, i) => <li key={i}>{u}</li>)}
+                                        </ul>
+                                    </div>
+                                    {item.signalWords && (
+                                        <p><strong className="text-slate-900">Dấu hiệu:</strong> {item.signalWords.join(', ')}</p>
+                                    )}
+                                    {item.commonMistakes && (
+                                        <div className="p-3 bg-amber-50 rounded-xl text-amber-900 text-xs border border-amber-200/60">
+                                            <strong>Lỗi thường gặp:</strong>
+                                            <ul className="mt-1 list-disc list-inside">
+                                                {item.commonMistakes.map((m, i) => <li key={i}>{m}</li>)}
+                                            </ul>
+                                        </div>
+                                    )}
+                                    <div>
+                                        <strong className="text-slate-900">Ví dụ:</strong>
+                                        <ul className="mt-1 space-y-1">
+                                            {item.examples.map((ex, i) => (
+                                                <li key={i} className="px-3 py-1.5 bg-slate-50 rounded-lg text-xs font-mono">{ex}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </div>
+                            )}
+                        </article>
+                    );
+                })}
+
+                {activeTrack === 'vocabulary' && filteredVocabulary.map((group) => (
+                    <article key={group.id} className="rounded-2xl border border-slate-200/80 bg-white p-5 space-y-3">
+                        <h3 className="text-base font-bold text-slate-900">{group.category}</h3>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="text-left text-xs text-slate-500 uppercase tracking-wider border-b border-slate-100">
+                                        <th className="pb-2 pr-4">Từ</th>
+                                        <th className="pb-2 pr-4">Nghĩa</th>
+                                        <th className="pb-2 pr-4 hidden sm:table-cell">Loại từ</th>
+                                        <th className="pb-2 hidden md:table-cell">Ví dụ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {group.items.map((item) => (
+                                        <tr key={item.word} className="border-b border-slate-50 last:border-0">
+                                            <td className="py-2 pr-4 font-semibold text-slate-900">{item.word}</td>
+                                            <td className="py-2 pr-4 text-slate-600">{item.meaning}</td>
+                                            <td className="py-2 pr-4 text-slate-400 text-xs hidden sm:table-cell">{item.partOfSpeech}</td>
+                                            <td className="py-2 text-slate-500 text-xs hidden md:table-cell italic">{item.example}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
+                ))}
+
+                {activeTrack === 'pronunciation' && filteredPronunciation.map((item) => {
+                    const isOpen = expandedIds.has(item.id) || !!query;
+                    return (
+                        <article key={item.id} className="rounded-2xl border border-slate-200/80 bg-white overflow-hidden">
+                            <button
+                                type="button"
+                                onClick={() => toggleExpand(item.id)}
+                                className="w-full flex items-center justify-between p-5 text-left hover:bg-slate-50 transition-colors"
+                                aria-expanded={isOpen}
+                            >
+                                <div>
+                                    <h3 className="text-base font-bold text-slate-900">{item.soundOrTopic}</h3>
+                                    <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{item.description}</p>
+                                </div>
+                                <span className="text-slate-400 text-lg ml-4 shrink-0">{isOpen ? '−' : '+'}</span>
+                            </button>
+
+                            {isOpen && (
+                                <div className="px-5 pb-5 space-y-3 text-sm text-slate-700 border-t border-slate-100 pt-4">
+                                    {item.mouthPosition && (
+                                        <p><strong className="text-slate-900">Khẩu hình:</strong> {item.mouthPosition}</p>
+                                    )}
+                                    {item.minimalPairs && (
+                                        <div>
+                                            <strong className="text-slate-900">Cặp từ đối lập:</strong>
+                                            <div className="mt-1 flex flex-wrap gap-2">
+                                                {item.minimalPairs.map(([a, b], i) => (
+                                                    <span key={i} className="px-2 py-1 bg-purple-50 text-purple-800 rounded-lg text-xs font-mono">
+                                                        {a} ↔ {b}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div>
+                                        <strong className="text-slate-900">Ví dụ:</strong>
+                                        <ul className="mt-1 list-disc list-inside">
+                                            {item.examples.map((ex, i) => <li key={i}>{ex}</li>)}
+                                        </ul>
+                                    </div>
+                                    {item.commonMistakes && (
+                                        <div className="p-3 bg-rose-50 rounded-xl text-rose-900 text-xs border border-rose-200/60">
+                                            <strong>Lỗi thường gặp:</strong>
+                                            <ul className="mt-1 list-disc list-inside">
+                                                {item.commonMistakes.map((m, i) => <li key={i}>{m}</li>)}
+                                            </ul>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </article>
+                    );
+                })}
+
+                {activeTrack === 'grammar' && filteredGrammar.length === 0 && (
+                    <p className="text-center text-slate-500 text-sm py-8">Không tìm thấy kết quả cho &ldquo;{searchQuery}&rdquo;</p>
+                )}
+                {activeTrack === 'vocabulary' && filteredVocabulary.length === 0 && (
+                    <p className="text-center text-slate-500 text-sm py-8">Không tìm thấy kết quả cho &ldquo;{searchQuery}&rdquo;</p>
+                )}
+                {activeTrack === 'pronunciation' && filteredPronunciation.length === 0 && (
+                    <p className="text-center text-slate-500 text-sm py-8">Không tìm thấy kết quả cho &ldquo;{searchQuery}&rdquo;</p>
+                )}
+            </div>
+        </div>
+    );
+};
+</file>
+
+<file path="src/features/exam/ExamBuilder.tsx">
+import React, {useMemo, useState} from 'react';
+import {QUESTION_BANK, TOPICS} from '../../data';
+import {filterQuestions} from '../../services/questionBank';
+import type {ExamConfig} from '../../services/examGenerator';
+import type {Difficulty, QuestionType, Track} from '../../types';
+
+interface ExamBuilderProps {
+    onGenerate: (config: ExamConfig, meta: {totalAvailable: number; isTruncated: boolean}) => void;
+}
+
+const TRACKS: {id: Track; label: string}[] = [
+    {id: 'grammar', label: 'Ngữ pháp'},
+    {id: 'vocabulary', label: 'Từ vựng'},
+    {id: 'pronunciation', label: 'Phát âm'},
+];
+
+const QUESTION_TYPE_OPTIONS: {id: QuestionType; label: string}[] = [
+    {id: 'multiple-choice', label: 'Trắc nghiệm'},
+    {id: 'fill-blank', label: 'Điền vào chỗ trống'},
+    {id: 'error-correction', label: 'Sửa lỗi'},
+    {id: 'listening', label: 'Nghe & chọn'},
+    {id: 'speaking', label: 'Đọc to / Phát âm'},
+];
+
+const DIFFICULTY_OPTIONS: {id: Difficulty | 'mixed'; label: string}[] = [
+    {id: 'mixed', label: 'Hỗn hợp'},
+    {id: 'beginner', label: 'Cơ bản'},
+    {id: 'intermediate', label: 'Trung cấp'},
+    {id: 'advanced', label: 'Nâng cao'},
+];
+
+const COUNT_OPTIONS = [5, 10, 15, 20];
+
+export const ExamBuilder: React.FC<ExamBuilderProps> = ({onGenerate}) => {
+    const [allTopics, setAllTopics] = useState(true);
+    const [selectedTracks, setSelectedTracks] = useState<Track[]>([]);
+    const [selectedTopicIds, setSelectedTopicIds] = useState<string[]>([]);
+    const [allTypes, setAllTypes] = useState(true);
+    const [selectedTypes, setSelectedTypes] = useState<QuestionType[]>([]);
+    const [difficulty, setDifficulty] = useState<Difficulty | 'mixed'>('mixed');
+    const [questionCount, setQuestionCount] = useState(10);
+
+    const topicsByTrack = useMemo(() => {
+        const grouped: Record<Track, typeof TOPICS> = {grammar: [], vocabulary: [], pronunciation: []};
+        TOPICS.forEach((t) => grouped[t.track].push(t));
+        return grouped;
+    }, []);
+
+    const previewPool = useMemo(() => {
+        const config: ExamConfig = {
+            trackIds: allTopics ? undefined : selectedTracks.length ? selectedTracks : undefined,
+            topicIds: allTopics ? undefined : selectedTopicIds.length ? selectedTopicIds : undefined,
+            questionTypes: allTypes ? undefined : selectedTypes.length ? selectedTypes : undefined,
+            difficulty,
+            questionCount,
+        };
+        return filterQuestions(QUESTION_BANK, config);
+    }, [allTopics, selectedTracks, selectedTopicIds, allTypes, selectedTypes, difficulty, questionCount]);
+
+    const toggleTrack = (track: Track) => {
+        setSelectedTracks((prev) =>
+            prev.includes(track) ? prev.filter((t) => t !== track) : [...prev, track]
+        );
+    };
+
+    const toggleTopic = (topicId: string) => {
+        setSelectedTopicIds((prev) =>
+            prev.includes(topicId) ? prev.filter((t) => t !== topicId) : [...prev, topicId]
+        );
+    };
+
+    const toggleType = (type: QuestionType) => {
+        setSelectedTypes((prev) =>
+            prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+        );
+    };
+
+    const handleGenerate = () => {
+        const config: ExamConfig = {
+            trackIds: allTopics ? undefined : selectedTracks.length ? selectedTracks : undefined,
+            topicIds: allTopics ? undefined : selectedTopicIds.length ? selectedTopicIds : undefined,
+            questionTypes: allTypes ? undefined : selectedTypes.length ? selectedTypes : undefined,
+            difficulty,
+            questionCount,
+        };
+        onGenerate(config, {
+            totalAvailable: previewPool.length,
+            isTruncated: previewPool.length < questionCount,
+        });
+    };
+
+    return (
+        <div className="max-w-2xl mx-auto bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm space-y-6">
+            <div className="text-center">
+                <div className="w-16 h-16 mx-auto bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl font-bold mb-4">
+                    📝
+                </div>
+                <h2 className="text-xl font-bold text-slate-900">Tạo bài thi tùy chỉnh</h2>
+                <p className="text-xs sm:text-sm text-slate-500 mt-1">Cấu hình chủ đề, độ khó và dạng câu hỏi.</p>
+            </div>
+
+            {/* Topics */}
+            <section className="space-y-3">
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Chủ đề</h3>
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={allTopics}
+                        onChange={(e) => setAllTopics(e.target.checked)}
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="font-medium">Tất cả chủ đề</span>
+                </label>
+
+                {!allTopics && (
+                    <div className="space-y-4 pl-2 border-l-2 border-slate-100">
+                        {TRACKS.map(({id: track, label}) => (
+                            <div key={track} className="space-y-2">
+                                <label className="flex items-center gap-2 text-sm font-semibold cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedTracks.includes(track)}
+                                        onChange={() => toggleTrack(track)}
+                                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    {label}
+                                </label>
+                                <div className="ml-6 flex flex-wrap gap-2">
+                                    {topicsByTrack[track].map((topic) => (
+                                        <label
+                                            key={topic.id}
+                                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 text-xs cursor-pointer hover:bg-slate-50"
+                                        >
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedTopicIds.includes(topic.id)}
+                                                onChange={() => toggleTopic(topic.id)}
+                                                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                            />
+                                            {topic.name}
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </section>
+
+            <hr className="border-slate-100" />
+
+            {/* Question Types */}
+            <section className="space-y-3">
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Dạng câu hỏi</h3>
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={allTypes}
+                        onChange={(e) => setAllTypes(e.target.checked)}
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="font-medium">Tất cả dạng</span>
+                </label>
+
+                {!allTypes && (
+                    <div className="flex flex-wrap gap-2 pl-2">
+                        {QUESTION_TYPE_OPTIONS.map(({id, label}) => (
+                            <label
+                                key={id}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 text-xs cursor-pointer hover:bg-slate-50"
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={selectedTypes.includes(id)}
+                                    onChange={() => toggleType(id)}
+                                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                />
+                                {label}
+                            </label>
+                        ))}
+                    </div>
+                )}
+            </section>
+
+            <hr className="border-slate-100" />
+
+            {/* Difficulty */}
+            <section className="space-y-3">
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Độ khó</h3>
+                <div className="flex flex-wrap gap-2">
+                    {DIFFICULTY_OPTIONS.map(({id, label}) => (
+                        <label
+                            key={id}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer border transition-all ${
+                                difficulty === id
+                                    ? 'bg-blue-50 border-blue-200 text-blue-700'
+                                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                            }`}
+                        >
+                            <input
+                                type="radio"
+                                name="difficulty"
+                                checked={difficulty === id}
+                                onChange={() => setDifficulty(id)}
+                                className="sr-only"
+                            />
+                            {label}
+                        </label>
+                    ))}
+                </div>
+            </section>
+
+            <hr className="border-slate-100" />
+
+            {/* Question Count */}
+            <section className="space-y-3">
+                <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Số câu hỏi</h3>
+                <div className="flex flex-wrap gap-2">
+                    {COUNT_OPTIONS.map((n) => (
+                        <button
+                            key={n}
+                            type="button"
+                            onClick={() => setQuestionCount(n)}
+                            className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
+                                questionCount === n
+                                    ? 'bg-slate-900 text-white border-slate-900'
+                                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                            }`}
+                        >
+                            {n}
+                        </button>
+                    ))}
+                </div>
+            </section>
+
+            {/* Preview / Warning */}
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600">
+                {previewPool.length === 0 ? (
+                    <span className="text-rose-600 font-medium">Không có câu hỏi phù hợp với bộ lọc hiện tại.</span>
+                ) : previewPool.length < questionCount ? (
+                    <span>
+                        Bạn yêu cầu <strong>{questionCount}</strong> câu, nhưng chỉ có{' '}
+                        <strong>{previewPool.length}</strong> câu phù hợp. Bài thi sẽ gồm {previewPool.length} câu.
+                    </span>
+                ) : (
+                    <span>
+                        Có <strong>{previewPool.length}</strong> câu hỏi phù hợp. Bài thi sẽ chọn ngẫu nhiên{' '}
+                        <strong>{questionCount}</strong> câu.
+                    </span>
+                )}
+            </div>
+
+            <button
+                type="button"
+                disabled={previewPool.length === 0}
+                onClick={handleGenerate}
+                className="w-full py-3.5 font-bold text-white transition-all shadow-md rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                Tạo bài thi ({Math.min(questionCount, previewPool.length)} câu) 🚀
+            </button>
+        </div>
+    );
+};
+</file>
+
+<file path="src/features/exam/ExamResultView.tsx">
+import React, {useMemo, useState} from 'react';
+import {QuestionRenderer} from '../../components/quiz/QuestionRenderer';
+import {TOPIC_MAP} from '../../data';
+import type {ExamResult, Question, Track} from '../../types';
+
+interface ExamResultViewProps {
+    result: ExamResult;
+    questions: Question[];
+    onNewTest: () => void;
+    onBackToDashboard: () => void;
+}
+
+const TRACK_LABELS: Record<Track, string> = {
+    grammar: 'Ngữ pháp',
+    vocabulary: 'Từ vựng',
+    pronunciation: 'Phát âm',
+};
+
+export const ExamResultView: React.FC<ExamResultViewProps> = ({
+    result,
+    questions,
+    onNewTest,
+    onBackToDashboard,
+}) => {
+    const [showReview, setShowReview] = useState(false);
+
+    const trackPercentages = useMemo(() => {
+        const scores: Record<Track, {correct: number; total: number}> = {
+            grammar: {correct: 0, total: 0},
+            vocabulary: {correct: 0, total: 0},
+            pronunciation: {correct: 0, total: 0},
+        };
+        questions.forEach((q) => {
+            scores[q.track].total++;
+            if (result.userAnswers[q.id]?.isCorrect) scores[q.track].correct++;
+        });
+        return Object.fromEntries(
+            (Object.keys(scores) as Track[]).map((t) => [
+                t,
+                scores[t].total > 0 ? Math.round((scores[t].correct / scores[t].total) * 100) : null,
+            ])
+        ) as Record<Track, number | null>;
+    }, [questions, result]);
+
+    const weakTopics = useMemo(() => {
+        const topicStats: Record<string, {correct: number; total: number}> = {};
+        questions.forEach((q) => {
+            q.topicIds.forEach((tid) => {
+                if (!topicStats[tid]) topicStats[tid] = {correct: 0, total: 0};
+                topicStats[tid].total++;
+                if (result.userAnswers[q.id]?.isCorrect) topicStats[tid].correct++;
+            });
+        });
+        return Object.entries(topicStats)
+            .map(([id, {correct, total}]) => ({
+                id,
+                name: TOPIC_MAP[id]?.name || id,
+                pct: Math.round((correct / total) * 100),
+            }))
+            .filter((t) => t.pct < 70)
+            .sort((a, b) => a.pct - b.pct);
+    }, [questions, result]);
+
+    if (showReview) {
+        return (
+            <div className="max-w-3xl mx-auto space-y-6">
+                <div className="flex items-center justify-between">
+                    <h3 className="font-bold text-slate-900">Xem lại đáp án</h3>
+                    <button
+                        type="button"
+                        onClick={() => setShowReview(false)}
+                        className="text-sm font-semibold text-blue-600 hover:text-blue-800"
+                    >
+                        ← Quay lại kết quả
+                    </button>
+                </div>
+
+                {questions.map((q, idx) => {
+                    const answer = result.userAnswers[q.id];
+                    return (
+                        <div
+                            key={q.id}
+                            className={`p-1 rounded-2xl ${answer?.isCorrect ? 'bg-emerald-100' : 'bg-rose-100'}`}
+                        >
+                            <div className="bg-white p-5 rounded-xl space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-bold text-slate-500">Câu {idx + 1}</span>
+                                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                                        answer?.isCorrect ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                                    }`}>
+                                        {answer?.isCorrect ? '✓ Đúng' : '✗ Sai'}
+                                    </span>
+                                </div>
+                                <QuestionRenderer
+                                    question={q}
+                                    userAnswer={answer?.answer}
+                                    onAnswerChange={() => {}}
+                                    showFeedback
+                                    disabled
+                                />
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    }
+
+    return (
+        <div className="max-w-lg mx-auto bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm space-y-6">
+            <div className="text-center">
+                <div className={`w-24 h-24 mx-auto rounded-full flex items-center justify-center text-3xl font-black border-4 ${
+                    result.scorePercentage >= 70
+                        ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                        : 'bg-amber-50 text-amber-600 border-amber-100'
+                }`}>
+                    {result.scorePercentage}%
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mt-4">Hoàn thành bài thi!</h3>
+                <p className="text-sm text-slate-500 mt-1">
+                    Bạn trả lời đúng <strong>{result.correctAnswersCount}</strong> / {result.totalQuestions} câu.
+                </p>
+            </div>
+
+            <div className="space-y-2">
+                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Theo lộ trình</h4>
+                {(Object.keys(trackPercentages) as Track[]).map((track) => {
+                    const pct = trackPercentages[track];
+                    if (pct === null) return null;
+                    return (
+                        <div key={track} className="flex items-center justify-between text-sm">
+                            <span className="text-slate-700">{TRACK_LABELS[track]}</span>
+                            <span className="font-bold text-slate-900">{pct}%</span>
+                        </div>
+                    );
+                })}
+            </div>
+
+            {weakTopics.length > 0 && (
+                <div className="p-4 rounded-xl bg-rose-50 border border-rose-200/60 space-y-2">
+                    <h4 className="text-xs font-bold text-rose-700 uppercase tracking-wider">Cần luyện thêm</h4>
+                    <ul className="space-y-1">
+                        {weakTopics.map((t) => (
+                            <li key={t.id} className="text-sm text-rose-800 flex justify-between">
+                                <span>{t.name}</span>
+                                <span className="font-semibold">{t.pct}%</span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+
+            <div className="flex flex-col gap-2">
+                <button
+                    type="button"
+                    onClick={() => setShowReview(true)}
+                    className="w-full py-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-sm transition-all border border-blue-200"
+                >
+                    Xem lại đáp án
+                </button>
+                <button
+                    type="button"
+                    onClick={onNewTest}
+                    className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm transition-all"
+                >
+                    Tạo đề thi mới
+                </button>
+                <button
+                    type="button"
+                    onClick={onBackToDashboard}
+                    className="w-full py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-semibold text-sm transition-all"
+                >
+                    Về Dashboard
+                </button>
+            </div>
+        </div>
+    );
+};
+</file>
+
+<file path="src/features/practice/PracticeConfig.tsx">
+import React, {useMemo, useState} from 'react';
+import {QUESTION_BANK, TOPICS} from '../../data';
+import {filterQuestions} from '../../services/questionBank';
+import {generateExam, type ExamConfig} from '../../services/examGenerator';
+import type {Difficulty, QuestionType, Track} from '../../types';
+
+interface PracticeConfigProps {
+    onStart: (questions: import('../../types').Question[]) => void;
+}
+
+const TRACKS: {id: Track | 'all'; label: string}[] = [
+    {id: 'all', label: 'Tất cả'},
+    {id: 'grammar', label: 'Ngữ pháp'},
+    {id: 'vocabulary', label: 'Từ vựng'},
+    {id: 'pronunciation', label: 'Phát âm'},
+];
+
+const TYPE_OPTIONS: {id: QuestionType | 'all'; label: string}[] = [
+    {id: 'all', label: 'Tất cả'},
+    {id: 'multiple-choice', label: 'Trắc nghiệm'},
+    {id: 'fill-blank', label: 'Điền từ'},
+    {id: 'error-correction', label: 'Sửa lỗi'},
+    {id: 'listening', label: 'Nghe'},
+    {id: 'speaking', label: 'Nói'},
+];
+
+const DIFFICULTY_OPTIONS: {id: Difficulty | 'all'; label: string}[] = [
+    {id: 'all', label: 'Tất cả'},
+    {id: 'beginner', label: 'Cơ bản'},
+    {id: 'intermediate', label: 'Trung cấp'},
+    {id: 'advanced', label: 'Nâng cao'},
+];
+
+const COUNT_OPTIONS = [5, 10, 20];
+
+export const PracticeConfig: React.FC<PracticeConfigProps> = ({onStart}) => {
+    const [track, setTrack] = useState<Track | 'all'>('all');
+    const [topicId, setTopicId] = useState<string>('all');
+    const [questionType, setQuestionType] = useState<QuestionType | 'all'>('all');
+    const [difficulty, setDifficulty] = useState<Difficulty | 'all'>('all');
+    const [questionCount, setQuestionCount] = useState(5);
+
+    const availableTopics = useMemo(() => {
+        if (track === 'all') return TOPICS;
+        return TOPICS.filter((t) => t.track === track);
+    }, [track]);
+
+    const previewCount = useMemo(() => {
+        const config: ExamConfig = {
+            trackIds: track === 'all' ? undefined : [track],
+            topicIds: topicId === 'all' ? undefined : [topicId],
+            questionTypes: questionType === 'all' ? undefined : [questionType],
+            difficulty: difficulty === 'all' ? 'mixed' : difficulty,
+            questionCount,
+        };
+        return filterQuestions(QUESTION_BANK, config).length;
+    }, [track, topicId, questionType, difficulty, questionCount]);
+
+    const handleStart = () => {
+        const config: ExamConfig = {
+            trackIds: track === 'all' ? undefined : [track],
+            topicIds: topicId === 'all' ? undefined : [topicId],
+            questionTypes: questionType === 'all' ? undefined : [questionType],
+            difficulty: difficulty === 'all' ? 'mixed' : difficulty,
+            questionCount,
+        };
+        const result = generateExam(QUESTION_BANK, config);
+        if (result.questions.length === 0) {
+            alert('Không tìm thấy câu hỏi phù hợp!');
+            return;
+        }
+        onStart(result.questions);
+    };
+
+    return (
+        <div className="max-w-xl mx-auto bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm space-y-5">
+            <div className="text-center">
+                <div className="w-16 h-16 mx-auto bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl font-bold mb-4">
+                    🎯
+                </div>
+                <h2 className="text-xl font-bold text-slate-900">Luyện tập</h2>
+                <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                    Chọn bộ lọc và bắt đầu luyện tập với phản hồi tức thì.
+                </p>
+            </div>
+
+            <div className="space-y-4">
+                <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Lộ trình</label>
+                    <div className="flex flex-wrap gap-2 mt-1.5">
+                        {TRACKS.map(({id, label}) => (
+                            <button
+                                key={id}
+                                type="button"
+                                onClick={() => { setTrack(id); setTopicId('all'); }}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+                                    track === id ? 'bg-blue-600 text-white border-blue-600' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                                }`}
+                            >
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div>
+                    <label htmlFor="practice-topic" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Chủ đề</label>
+                    <select
+                        id="practice-topic"
+                        value={topicId}
+                        onChange={(e) => setTopicId(e.target.value)}
+                        className="mt-1.5 w-full px-3 py-2 text-sm rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none"
+                    >
+                        <option value="all">Tất cả chủ đề</option>
+                        {availableTopics.map((t) => (
+                            <option key={t.id} value={t.id}>{t.name}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Dạng câu hỏi</label>
+                    <div className="flex flex-wrap gap-2 mt-1.5">
+                        {TYPE_OPTIONS.map(({id, label}) => (
+                            <button
+                                key={id}
+                                type="button"
+                                onClick={() => setQuestionType(id)}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+                                    questionType === id ? 'bg-slate-900 text-white border-slate-900' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                                }`}
+                            >
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Độ khó</label>
+                    <div className="flex flex-wrap gap-2 mt-1.5">
+                        {DIFFICULTY_OPTIONS.map(({id, label}) => (
+                            <button
+                                key={id}
+                                type="button"
+                                onClick={() => setDifficulty(id)}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+                                    difficulty === id ? 'bg-indigo-600 text-white border-indigo-600' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                                }`}
+                            >
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Số câu hỏi</label>
+                    <div className="flex flex-wrap gap-2 mt-1.5">
+                        {COUNT_OPTIONS.map((n) => (
+                            <button
+                                key={n}
+                                type="button"
+                                onClick={() => setQuestionCount(n)}
+                                className={`px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
+                                    questionCount === n ? 'bg-emerald-600 text-white border-emerald-600' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                                }`}
+                            >
+                                {n}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 text-center">
+                {previewCount === 0 ? (
+                    <span className="text-rose-600 font-medium">Không có câu hỏi phù hợp.</span>
+                ) : previewCount < questionCount ? (
+                    <span>Có {previewCount} câu phù hợp (ít hơn yêu cầu).</span>
+                ) : (
+                    <span>Sẵn sàng — {previewCount} câu hỏi khả dụng.</span>
+                )}
+            </div>
+
+            <button
+                type="button"
+                disabled={previewCount === 0}
+                onClick={handleStart}
+                className="w-full py-3 font-bold text-white transition-all bg-blue-600 rounded-xl hover:bg-blue-700 shadow-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                Bắt đầu Luyện Tập ({Math.min(questionCount, previewCount)} câu) 🚀
+            </button>
+        </div>
+    );
+};
+</file>
+
+<file path="src/features/practice/PracticeSession.tsx">
+import React, {useState} from 'react';
+import {QuestionRenderer} from '../../components/quiz/QuestionRenderer';
+import {evaluateAnswer} from '../../services/scoring';
+import {recordQuestionAttempt} from '../../storage';
+import type {Question} from '../../types';
+
+interface PracticeProps {
+    questions: Question[];
+    onFinish: () => void;
+}
+
+function hasValidAnswer(question: Question, answer: unknown): boolean {
+    if (answer === undefined || answer === null) return false;
+    switch (question.type) {
+        case 'multiple-choice':
+        case 'listening':
+            return typeof answer === 'number';
+        case 'fill-blank':
+            return String(answer).trim().length > 0;
+        case 'error-correction':
+            return Boolean((answer as {segmentId?: string; correction?: string})?.segmentId) &&
+                String((answer as {correction?: string})?.correction || '').trim().length > 0;
+        case 'speaking':
+            return Boolean((answer as {completed?: boolean})?.completed);
+        default:
+            return false;
+    }
+}
+
+export const PracticeSession: React.FC<PracticeProps> = ({questions, onFinish}) => {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [userAnswer, setUserAnswer] = useState<unknown>(null);
+    const [isChecked, setIsChecked] = useState(false);
+    const [correctCount, setCorrectCount] = useState(0);
+    const [isComplete, setIsComplete] = useState(false);
+
+    const currentQuestion = questions[currentIndex];
+    const evalResult = isChecked ? evaluateAnswer(currentQuestion, userAnswer) : null;
+
+    const handleCheck = () => {
+        const result = evaluateAnswer(currentQuestion, userAnswer);
+        recordQuestionAttempt(currentQuestion.id, result.isCorrect);
+        if (result.isCorrect) setCorrectCount((c) => c + 1);
+        setIsChecked(true);
+    };
+
+    const handleNext = () => {
+        setIsChecked(false);
+        setUserAnswer(null);
+        if (currentIndex < questions.length - 1) {
+            setCurrentIndex((prev) => prev + 1);
+        } else {
+            setIsComplete(true);
+        }
+    };
+
+    if (isComplete) {
+        const pct = Math.round((correctCount / questions.length) * 100);
+        return (
+            <div className="max-w-md mx-auto bg-white p-8 rounded-3xl border border-slate-200/80 shadow-sm text-center space-y-4">
+                <div className="w-20 h-20 mx-auto bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-2xl font-black">
+                    {pct}%
+                </div>
+                <h3 className="text-lg font-bold text-slate-900">Hoàn thành luyện tập!</h3>
+                <p className="text-sm text-slate-500">
+                    Bạn trả lời đúng <strong>{correctCount}</strong> / {questions.length} câu.
+                </p>
+                <button
+                    type="button"
+                    onClick={onFinish}
+                    className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-all"
+                >
+                    Luyện tập tiếp
+                </button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="max-w-2xl mx-auto space-y-6">
+            <div className="flex items-center justify-between text-sm text-slate-500 font-medium">
+                <span>Câu {currentIndex + 1} / {questions.length}</span>
+                <span className="text-blue-600 font-semibold">Chế độ Luyện tập</span>
+            </div>
+
+            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div
+                    className="h-full bg-blue-600 rounded-full transition-all duration-300"
+                    style={{width: `${((currentIndex + (isChecked ? 1 : 0)) / questions.length) * 100}%`}}
+                />
+            </div>
+
+            <QuestionRenderer
+                question={currentQuestion}
+                userAnswer={userAnswer}
+                onAnswerChange={setUserAnswer}
+                showFeedback={isChecked}
+                disabled={isChecked}
+            />
+
+            {isChecked && evalResult && (
+                <div
+                    role="status"
+                    className={`p-4 rounded-xl font-medium border ${
+                        evalResult.isCorrect
+                            ? 'bg-emerald-50 text-emerald-900 border-emerald-200'
+                            : 'bg-rose-50 text-rose-900 border-rose-200'
+                    }`}
+                >
+                    {evalResult.isCorrect
+                        ? '✓ Chính xác!'
+                        : evalResult.feedback || '✗ Chưa đúng. Xem giải thích phía trên.'}
+                </div>
+            )}
+
+            <div className="flex justify-end gap-3">
+                {!isChecked ? (
+                    <button
+                        type="button"
+                        disabled={!hasValidAnswer(currentQuestion, userAnswer)}
+                        onClick={handleCheck}
+                        className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Kiểm tra
+                    </button>
+                ) : (
+                    <button
+                        type="button"
+                        onClick={handleNext}
+                        className="px-6 py-2.5 rounded-xl bg-slate-900 text-white font-semibold transition-all"
+                    >
+                        {currentIndex < questions.length - 1 ? 'Câu tiếp theo →' : 'Hoàn thành'}
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+};
+</file>
+
+<file path="src/mock/CHEATSHEET.ts">
+import type {
+    GrammarCheatsheetItem,
+    PronunciationCheatsheetItem,
+    VocabularyCheatsheetGroup,
+} from '../types';
+
+export const GRAMMAR_CHEATSHEET: GrammarCheatsheetItem[] = [
+    {
+        id: 'cs-gram-01',
+        topicId: 'topic-present-simple',
+        title: 'Present Simple',
+        rule: 'Used for habits, routines, general truths, and fixed schedules.',
+        structure: 'Subject + Verb(s/es) + Object  |  Negative: don\'t/doesn\'t + V  |  Question: Do/Does + S + V?',
+        usage: [
+            'Daily habits and routines',
+            'General truths and facts',
+            'Fixed schedules (timetables)',
+            'States and feelings (know, believe, love)',
+        ],
+        signalWords: ['always', 'usually', 'often', 'sometimes', 'never', 'every day/week', 'on Mondays'],
+        commonMistakes: [
+            'Forgetting -s/-es on 3rd person singular: "She go" ❌ → "She goes" ✓',
+            'Using Present Continuous for habits: "I am going to work every day" ❌',
+        ],
+        examples: [
+            'She goes to school every day.',
+            'The sun rises in the East.',
+            'Do you like coffee?',
+        ],
+    },
+    {
+        id: 'cs-gram-02',
+        topicId: 'topic-past-simple',
+        title: 'Past Simple',
+        rule: 'Used for actions that started and finished completely in the past at a specific time.',
+        structure: 'Subject + V2/ed + Object  |  Negative: didn\'t + V  |  Question: Did + S + V?',
+        usage: [
+            'Completed actions at a specific past time',
+            'A series of past events',
+            'Past habits (no longer true)',
+        ],
+        signalWords: ['yesterday', 'last week/month/year', 'ago', 'in 2010', 'when I was young'],
+        commonMistakes: [
+            'Mixing Past Simple with Present Perfect: "I have visited Paris last year" ❌',
+            'Using wrong irregular forms: "goed" ❌ → "went" ✓',
+        ],
+        examples: [
+            'I visited London last summer.',
+            'They didn\'t watch the movie yesterday.',
+            'What time did you wake up?',
+        ],
+    },
+    {
+        id: 'cs-gram-03',
+        topicId: 'topic-present-perfect',
+        title: 'Present Perfect',
+        rule: 'Connects the past to the present — for experiences, unfinished time periods, or recent actions with present relevance.',
+        structure: 'Subject + have/has + V3 (past participle)',
+        usage: [
+            'Life experiences (Have you ever…?)',
+            'Actions continuing from past to now (for/since)',
+            'Recent actions with present result (just, already, yet)',
+        ],
+        signalWords: ['ever', 'never', 'just', 'already', 'yet', 'for', 'since', 'recently'],
+        commonMistakes: [
+            'Using with finished past time: "I have seen him yesterday" ❌',
+            'Wrong past participle: "has went" ❌ → "has gone" ✓',
+        ],
+        examples: [
+            'I have lived in Hanoi for 5 years.',
+            'She has already finished her homework.',
+            'Have you ever visited Japan?',
+        ],
+    },
+    {
+        id: 'cs-gram-04',
+        topicId: 'topic-articles',
+        title: 'Articles (a / an / the)',
+        rule: 'A/an for non-specific singular countable nouns. The for specific or previously mentioned nouns.',
+        structure: 'a + consonant sound  |  an + vowel sound  |  the + specific noun',
+        usage: [
+            'a/an: first mention, one of many, jobs, general categories',
+            'the: specific things, unique objects, superlatives, musical instruments',
+            'No article: plural/general concepts, meals, sports, languages',
+        ],
+        commonMistakes: [
+            'Using "a" before vowel sounds: "a apple" ❌ → "an apple" ✓',
+            'Omitting "the" with superlatives: "She is best student" ❌',
+        ],
+        examples: [
+            'I saw a dog in the park.',
+            'She is the best student in the class.',
+            'I play tennis on Saturdays.',
+        ],
+    },
+];
+
+export const VOCABULARY_CHEATSHEET: VocabularyCheatsheetGroup[] = [
+    {
+        id: 'cs-vocab-travel',
+        topicId: 'topic-travel',
+        category: 'Travel & Transportation',
+        items: [
+            {word: 'Boarding pass', meaning: 'Thẻ lên máy bay', partOfSpeech: 'noun', example: 'Show your boarding pass at gate 4.'},
+            {word: 'Luggage', meaning: 'Hành lý', partOfSpeech: 'noun', example: 'My luggage was lost at the airport.'},
+            {word: 'Accommodation', meaning: 'Chỗ ở / Khách sạn', partOfSpeech: 'noun', example: 'We booked accommodation near the beach.'},
+            {word: 'Destination', meaning: 'Điểm đến', partOfSpeech: 'noun', example: 'Paris is our final destination.'},
+            {word: 'Departure', meaning: 'Khởi hành', partOfSpeech: 'noun', example: 'The departure time is 8:00 AM.'},
+        ],
+    },
+    {
+        id: 'cs-vocab-food',
+        topicId: 'topic-food',
+        category: 'Food & Dining',
+        items: [
+            {word: 'Appetizer', meaning: 'Món khai vị', partOfSpeech: 'noun', example: 'Would you like to order an appetizer?'},
+            {word: 'Delicious', meaning: 'Ngon miệng', partOfSpeech: 'adjective', example: 'The soup was absolutely delicious.'},
+            {word: 'Receipt', meaning: 'Hóa đơn thanh toán', partOfSpeech: 'noun', example: 'Could we have the receipt, please?'},
+            {word: 'Vegetarian', meaning: 'Ăn chay', partOfSpeech: 'noun/adj', example: 'Do you have any vegetarian options?'},
+            {word: 'Reservation', meaning: 'Đặt bàn / Đặt phòng', partOfSpeech: 'noun', example: 'I made a reservation for two at 7 PM.'},
+        ],
+    },
+    {
+        id: 'cs-vocab-business',
+        topicId: 'topic-business',
+        category: 'Business & Office',
+        items: [
+            {word: 'Deadline', meaning: 'Hạn chót', partOfSpeech: 'noun', example: 'We must submit the report before the deadline.'},
+            {word: 'Colleague', meaning: 'Đồng nghiệp', partOfSpeech: 'noun', example: 'My colleague helped me with the presentation.'},
+            {word: 'Negotiate', meaning: 'Đàm phán', partOfSpeech: 'verb', example: 'They are negotiating a new contract.'},
+            {word: 'Proposal', meaning: 'Đề xuất', partOfSpeech: 'noun', example: 'The client approved our proposal.'},
+            {word: 'Agenda', meaning: 'Chương trình nghị sự', partOfSpeech: 'noun', example: 'Let\'s review the meeting agenda.'},
+        ],
+    },
+];
+
+export const PRONUNCIATION_CHEATSHEET: PronunciationCheatsheetItem[] = [
+    {
+        id: 'cs-pron-01',
+        topicId: 'topic-s-vs-sh',
+        soundOrTopic: '/s/ vs /ʃ/',
+        description: '/s/ is a voiceless alveolar fricative (smile, teeth close). /ʃ/ is a voiceless postalveolar fricative (lips rounded, air pushed forward).',
+        mouthPosition: '/s/: teeth nearly together, tongue behind teeth. /ʃ/: lips slightly rounded, tongue further back.',
+        minimalPairs: [
+            ['sea /siː/', 'she /ʃiː/'],
+            ['sip /sɪp/', 'ship /ʃɪp/'],
+            ['sell /sel/', 'shell /ʃel/'],
+        ],
+        examples: ['sun, see, bus', 'she, ship, wash'],
+        commonMistakes: ['Replacing /ʃ/ with /s/: "sheep" pronounced as "seep"'],
+    },
+    {
+        id: 'cs-pron-02',
+        topicId: 'topic-r-vs-l',
+        soundOrTopic: '/r/ vs /l/',
+        description: '/l/ requires the tongue tip to touch the alveolar ridge. /r/ is an approximant — tongue curled back without touching anything.',
+        mouthPosition: '/l/: tongue tip up behind upper teeth. /r/: lips slightly rounded, tongue pulled back.',
+        minimalPairs: [
+            ['light /laɪt/', 'right /raɪt/'],
+            ['lock /lɒk/', 'rock /rɒk/'],
+            ['fly /flaɪ/', 'fry /fraɪ/'],
+        ],
+        examples: ['light, love, hello', 'right, red, around'],
+        commonMistakes: ['Using /l/ instead of /r/: "rice" sounds like "lice"'],
+    },
+    {
+        id: 'cs-pron-03',
+        topicId: 'topic-word-stress',
+        soundOrTopic: 'Word Stress',
+        description: 'In two-syllable words, nouns and adjectives usually stress the first syllable; verbs stress the second.',
+        mouthPosition: 'Stress the syllable by making it louder, longer, and higher in pitch.',
+        examples: [
+            'Noun: PRE-sent /ˈprez.ənt/, COF-fee /ˈkɒf.i/',
+            'Verb: pre-SENT /prɪˈzent/, de-CIDE /dɪˈsaɪd/',
+            'Adjective: HAP-py /ˈhæp.i/, CLE-ver /ˈklev.ər/',
+        ],
+        commonMistakes: [
+            'Stressing the wrong syllable changes meaning: "RE-cord" (noun) vs "re-CORD" (verb)',
+        ],
+    },
+];
+</file>
+
+<file path="src/mock/QUESTIONS.ts">
+import type {Question} from '../types';
+
+export const QUESTIONS: Question[] = [
+    // ── Grammar: Present Simple ──────────────────────────────────────────
+    {
+        id: 'q-gram-01',
+        type: 'multiple-choice',
+        track: 'grammar',
+        topicIds: ['topic-present-simple'],
+        lessonIds: ['les-gram-01'],
+        difficulty: 'beginner',
+        question: 'Which sentence is correct?',
+        options: [
+            'She go to school every day.',
+            'She goes to school every day.',
+            'She going to school every day.',
+            'She gone to school every day.',
+        ],
+        correctIndex: 1,
+        explanation: 'Third person singular subjects (he/she/it) require the verb to take -s or -es: "She goes".',
+    },
+    {
+        id: 'q-gram-02',
+        type: 'fill-blank',
+        track: 'grammar',
+        topicIds: ['topic-present-simple'],
+        lessonIds: ['les-gram-01'],
+        difficulty: 'beginner',
+        question: 'He _____ (watch) TV every evening.',
+        acceptedAnswers: ['watches', 'watchs'],
+        explanation: 'For he/she/it, add -es to verbs ending in -ch: "watches".',
+    },
+    {
+        id: 'q-gram-03',
+        type: 'error-correction',
+        track: 'grammar',
+        topicIds: ['topic-present-simple'],
+        lessonIds: ['les-gram-01'],
+        difficulty: 'beginner',
+        prompt: 'Find the incorrect part and type the correction:',
+        segments: [
+            {id: '1', text: 'She', label: 'A'},
+            {id: '2', text: 'go', label: 'B'},
+            {id: '3', text: 'to', label: 'C'},
+            {id: '4', text: 'school', label: 'D'},
+            {id: '5', text: 'every day.', label: 'E'},
+        ],
+        correctSegmentId: '2',
+        acceptedCorrections: ['goes'],
+        explanation: 'The verb must agree with the third person singular subject: "go" → "goes".',
+    },
+
+    // ── Grammar: Past Simple ─────────────────────────────────────────────
+    {
+        id: 'q-gram-04',
+        type: 'multiple-choice',
+        track: 'grammar',
+        topicIds: ['topic-past-simple'],
+        lessonIds: ['les-gram-02'],
+        difficulty: 'beginner',
+        question: 'Which sentence correctly uses the Past Simple?',
+        options: [
+            'I have visited London last summer.',
+            'I visited London last summer.',
+            'I visit London last summer.',
+            'I am visiting London last summer.',
+        ],
+        correctIndex: 1,
+        explanation: '"Last summer" is a finished time in the past — use Past Simple, not Present Perfect.',
+    },
+    {
+        id: 'q-gram-05',
+        type: 'fill-blank',
+        track: 'grammar',
+        topicIds: ['topic-past-simple'],
+        lessonIds: ['les-gram-02'],
+        difficulty: 'beginner',
+        question: 'They _____ (not / watch) the movie yesterday.',
+        acceptedAnswers: ["didn't watch", 'did not watch', 'didnt watch'],
+        explanation: 'Negative Past Simple: did not (didn\'t) + base form of the verb.',
+    },
+
+    // ── Grammar: Present Perfect ─────────────────────────────────────────
+    {
+        id: 'q-gram-06',
+        type: 'multiple-choice',
+        track: 'grammar',
+        topicIds: ['topic-present-perfect'],
+        lessonIds: ['les-gram-03'],
+        difficulty: 'intermediate',
+        question: 'Choose the correct sentence:',
+        options: [
+            'I live here since 2020.',
+            'I am living here since 2020.',
+            'I have lived here since 2020.',
+            'I lived here since 2020.',
+        ],
+        correctIndex: 2,
+        explanation: '"Since + point in time" requires Present Perfect: have/has + past participle.',
+    },
+    {
+        id: 'q-gram-07',
+        type: 'error-correction',
+        track: 'grammar',
+        topicIds: ['topic-present-perfect'],
+        lessonIds: ['les-gram-03'],
+        difficulty: 'intermediate',
+        prompt: 'Find the incorrect part and type the correction:',
+        segments: [
+            {id: '1', text: 'She', label: 'A'},
+            {id: '2', text: 'has', label: 'B'},
+            {id: '3', text: 'already', label: 'C'},
+            {id: '4', text: 'finish', label: 'D'},
+            {id: '5', text: 'her homework.', label: 'E'},
+        ],
+        correctSegmentId: '4',
+        acceptedCorrections: ['finished'],
+        explanation: 'After "has/have", use the past participle (V3): "finish" → "finished".',
+    },
+
+    // ── Vocabulary: Travel ───────────────────────────────────────────────
+    {
+        id: 'q-vocab-01',
+        type: 'multiple-choice',
+        track: 'vocabulary',
+        topicIds: ['topic-travel'],
+        lessonIds: ['les-vocab-01'],
+        difficulty: 'beginner',
+        question: 'What is a "boarding pass"?',
+        options: [
+            'A ticket to enter a museum',
+            'A document allowing you to board a flight',
+            'A hotel room key',
+            'A train schedule',
+        ],
+        correctIndex: 1,
+        explanation: 'A boarding pass is the document you show at the airport gate to board your flight.',
+    },
+    {
+        id: 'q-vocab-02',
+        type: 'fill-blank',
+        track: 'vocabulary',
+        topicIds: ['topic-travel'],
+        lessonIds: ['les-vocab-01'],
+        difficulty: 'beginner',
+        question: 'Please show your _____ at gate 4. (Thẻ lên máy bay)',
+        acceptedAnswers: ['boarding pass', 'boarding-pass'],
+        explanation: '"Boarding pass" is the standard term for an airline boarding document.',
+    },
+
+    // ── Vocabulary: Food ─────────────────────────────────────────────────
+    {
+        id: 'q-vocab-03',
+        type: 'multiple-choice',
+        track: 'vocabulary',
+        topicIds: ['topic-food'],
+        lessonIds: ['les-vocab-02'],
+        difficulty: 'beginner',
+        question: 'Which word means "món khai vị" (a small dish served before the main course)?',
+        options: ['Dessert', 'Appetizer', 'Beverage', 'Receipt'],
+        correctIndex: 1,
+        explanation: 'An appetizer (or starter) is a small dish served before the main course.',
+    },
+    {
+        id: 'q-vocab-04',
+        type: 'fill-blank',
+        track: 'vocabulary',
+        topicIds: ['topic-food'],
+        lessonIds: ['les-vocab-02'],
+        difficulty: 'beginner',
+        question: 'Could we have the _____, please? (Hóa đơn thanh toán)',
+        acceptedAnswers: ['receipt', 'bill', 'check'],
+        explanation: '"Receipt", "bill", or "check" are all acceptable when asking to pay at a restaurant.',
+    },
+
+    // ── Vocabulary: Business ─────────────────────────────────────────────
+    {
+        id: 'q-vocab-05',
+        type: 'multiple-choice',
+        track: 'vocabulary',
+        topicIds: ['topic-business'],
+        lessonIds: ['les-vocab-03'],
+        difficulty: 'intermediate',
+        question: 'What does "deadline" mean in a business context?',
+        options: [
+            'A type of contract',
+            'The final date by which something must be completed',
+            'A business meeting room',
+            'An employee\'s salary',
+        ],
+        correctIndex: 1,
+        explanation: 'A deadline is the latest time or date by which a task must be finished.',
+    },
+
+    // ── Pronunciation: /s/ vs /ʃ/ ───────────────────────────────────────
+    {
+        id: 'q-pron-01',
+        type: 'listening',
+        track: 'pronunciation',
+        topicIds: ['topic-s-vs-sh'],
+        lessonIds: ['les-pron-01'],
+        difficulty: 'beginner',
+        question: 'What did you hear?',
+        audio: {text: 'ship'},
+        options: ['ship', 'sheep', 'sip', 'seep'],
+        correctIndex: 0,
+        explanation: '/ʃɪp/ — the /ʃ/ sound (as in "she") is used in "ship".',
+    },
+    {
+        id: 'q-pron-02',
+        type: 'speaking',
+        track: 'pronunciation',
+        topicIds: ['topic-s-vs-sh'],
+        lessonIds: ['les-pron-01'],
+        difficulty: 'beginner',
+        promptText: 'Read aloud: "The sheep is on the ship."',
+        explanation: 'Practice distinguishing /s/ (sheep → actually /ʃ/) and /ʃ/ (ship). Focus on rounding your lips for /ʃ/.',
+    },
+
+    // ── Pronunciation: /r/ vs /l/ ───────────────────────────────────────
+    {
+        id: 'q-pron-03',
+        type: 'listening',
+        track: 'pronunciation',
+        topicIds: ['topic-r-vs-l'],
+        lessonIds: ['les-pron-02'],
+        difficulty: 'intermediate',
+        question: 'What did you hear?',
+        audio: {text: 'right'},
+        options: ['light', 'right', 'write', 'white'],
+        correctIndex: 1,
+        explanation: '/raɪt/ — the /r/ sound requires a curled tongue that does not touch the roof of the mouth.',
+    },
+    {
+        id: 'q-pron-04',
+        type: 'speaking',
+        track: 'pronunciation',
+        topicIds: ['topic-r-vs-l'],
+        lessonIds: ['les-pron-02'],
+        difficulty: 'intermediate',
+        promptText: 'Read aloud: "The light is on the right side."',
+        explanation: 'For /l/, touch the tip of your tongue to the ridge behind your upper teeth. For /r/, curl the tongue back without touching.',
+    },
+
+    // ── Pronunciation: Word Stress ───────────────────────────────────────
+    {
+        id: 'q-pron-05',
+        type: 'listening',
+        track: 'pronunciation',
+        topicIds: ['topic-word-stress'],
+        lessonIds: ['les-pron-03'],
+        difficulty: 'intermediate',
+        question: 'Which word did you hear? (Noun with stress on the first syllable)',
+        audio: {text: 'present'},
+        options: ['present (noun: PRE-sent)', 'present (verb: pre-SENT)', 'president', 'pleasant'],
+        correctIndex: 0,
+        explanation: 'As a noun, "present" (/ˈprez.ənt/) has stress on the first syllable. As a verb, stress moves to the second syllable.',
+    },
+];
+</file>
+
+<file path="src/mock/TOPICS.ts">
+import type {Topic} from '../types';
+
+export const TOPICS: Topic[] = [
+    // Grammar
+    {id: 'topic-present-simple', name: 'Present Simple', track: 'grammar', description: 'Habitual actions and general truths'},
+    {id: 'topic-past-simple', name: 'Past Simple', track: 'grammar', description: 'Completed actions in the past'},
+    {id: 'topic-present-perfect', name: 'Present Perfect', track: 'grammar', description: 'Past actions connected to the present'},
+    {id: 'topic-articles', name: 'Articles (a/an/the)', track: 'grammar', description: 'Definite and indefinite articles'},
+
+    // Vocabulary
+    {id: 'topic-travel', name: 'Travel & Transportation', track: 'vocabulary'},
+    {id: 'topic-food', name: 'Food & Dining', track: 'vocabulary'},
+    {id: 'topic-business', name: 'Business & Office', track: 'vocabulary'},
+
+    // Pronunciation
+    {id: 'topic-s-vs-sh', name: '/s/ vs /ʃ/', track: 'pronunciation'},
+    {id: 'topic-r-vs-l', name: '/r/ vs /l/', track: 'pronunciation'},
+    {id: 'topic-word-stress', name: 'Word Stress', track: 'pronunciation'},
+];
+
+export const TOPIC_MAP = Object.fromEntries(TOPICS.map((t) => [t.id, t])) as Record<string, Topic>;
+</file>
+
+<file path="src/services/examGenerator.ts">
+import type {Difficulty, Question, QuestionType, Track} from "../types";
+
+export interface ExamConfig {
+    trackIds?: Track[];
+    topicIds?: string[];
+    questionTypes?: QuestionType[];
+    difficulty?: Difficulty | 'mixed';
+    questionCount: number;
+}
+
+export interface ExamGenerationResult {
+    questions: Question[];
+    totalAvailable: number;
+    isTruncated: boolean;
+}
+
+export function shuffle<T>(array: T[]): T[] {
+    const result = [...array];
+    for (let i = result.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+    }
+    return result;
+}
+
+export function generateExam(
+    bank: Question[],
+    config: ExamConfig
+): ExamGenerationResult {
+    // 1. Filter bank by requirements
+    let pool = bank.filter((q) => {
+        if (config.trackIds?.length && !config.trackIds.includes(q.track)) {
+            return false;
+        }
+        if (
+            config.topicIds?.length &&
+            !q.topicIds.some((t) => config.topicIds!.includes(t))
+        ) {
+            return false;
+        }
+        if (
+            config.questionTypes?.length &&
+            !config.questionTypes.includes(q.type)
+        ) {
+            return false;
+        }
+        if (
+            config.difficulty &&
+            config.difficulty !== 'mixed' &&
+            q.difficulty !== config.difficulty
+        ) {
+            return false;
+        }
+        return true;
+    });
+
+    const totalAvailable = pool.length;
+
+    if (pool.length <= config.questionCount) {
+        return {
+            questions: shuffle(pool),
+            totalAvailable,
+            isTruncated: totalAvailable < config.questionCount,
+        };
+    }
+
+    // 2. Balanced distribution across question types
+    const groupedByType: Record<string, Question[]> = {};
+    pool.forEach((q) => {
+        if (!groupedByType[q.type]) groupedByType[q.type] = [];
+        groupedByType[q.type].push(q);
+    });
+
+    const typesPresent = Object.keys(groupedByType);
+    const selected: Question[] = [];
+    const perTypeQuota = Math.floor(config.questionCount / typesPresent.length);
+
+    // Take quota from each type
+    typesPresent.forEach((type) => {
+        const shuffledTypeGroup = shuffle(groupedByType[type]);
+        const countToTake = Math.min(shuffledTypeGroup.length, perTypeQuota);
+        selected.push(...shuffledTypeGroup.slice(0, countToTake));
+    });
+
+    // 3. Fill remaining quota if unevenly divisible or if some types were undersupplied
+    const selectedIds = new Set(selected.map((q) => q.id));
+    const remainingPool = shuffle(pool.filter((q) => !selectedIds.has(q.id)));
+
+    while (
+        selected.length < config.questionCount &&
+        remainingPool.length > 0
+    ) {
+        selected.push(remainingPool.pop()!);
+    }
+
+    return {
+        questions: shuffle(selected),
+        totalAvailable,
+        isTruncated: false,
+    };
+}
+</file>
+
+<file path="src/services/questionBank.ts">
+import type {Difficulty, Question, QuestionType, Track} from '../types';
+
+export interface QuestionFilter {
+    trackIds?: Track[];
+    topicIds?: string[];
+    lessonIds?: string[];
+    questionTypes?: QuestionType[];
+    difficulty?: Difficulty | 'mixed';
+    tags?: string[];
+}
+
+export function getQuestionById(bank: Question[], id: string): Question | undefined {
+    return bank.find((q) => q.id === id);
+}
+
+export function getQuestionsByIds(bank: Question[], ids: string[]): Question[] {
+    return ids
+        .map((id) => getQuestionById(bank, id))
+        .filter((q): q is Question => q !== undefined);
+}
+
+export function getQuestionsByLesson(bank: Question[], lessonId: string): Question[] {
+    return bank.filter((q) => q.lessonIds?.includes(lessonId));
+}
+
+export function filterQuestions(bank: Question[], filter: QuestionFilter): Question[] {
+    return bank.filter((q) => {
+        if (filter.trackIds?.length && !filter.trackIds.includes(q.track)) return false;
+        if (filter.topicIds?.length && !q.topicIds.some((t) => filter.topicIds!.includes(t))) return false;
+        if (filter.lessonIds?.length && !q.lessonIds?.some((l) => filter.lessonIds!.includes(l))) return false;
+        if (filter.questionTypes?.length && !filter.questionTypes.includes(q.type)) return false;
+        if (filter.difficulty && filter.difficulty !== 'mixed' && q.difficulty !== filter.difficulty) return false;
+        if (filter.tags?.length && !filter.tags.some((tag) => q.tags?.includes(tag))) return false;
+        return true;
+    });
+}
+
+export function getTopicsForTrack(bank: Question[], track: Track): string[] {
+    const topicSet = new Set<string>();
+    bank.filter((q) => q.track === track).forEach((q) => q.topicIds.forEach((t) => topicSet.add(t)));
+    return [...topicSet];
+}
+</file>
+
+<file path="src/services/scoring.ts">
+import type {Question} from "../types";
+
+export interface EvaluationResult {
+    isCorrect: boolean;
+    scoreFraction: number; // 0.0 to 1.0
+    feedback?: string;
+}
+
+export function normalizeText(input: string): string {
+    return input.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+export function evaluateAnswer(
+    question: Question,
+    userAnswer: any
+): EvaluationResult {
+    if (userAnswer === undefined || userAnswer === null) {
+        return {isCorrect: false, scoreFraction: 0};
+    }
+
+    switch (question.type) {
+        case 'multiple-choice':
+        case 'listening': {
+            const isCorrect = userAnswer === question.correctIndex;
+            return {isCorrect, scoreFraction: isCorrect ? 1 : 0};
+        }
+
+        case 'fill-blank': {
+            const userText = normalizeText(String(userAnswer));
+            const isCorrect = question.acceptedAnswers.some(
+                (ans) => normalizeText(ans) === userText
+            );
+            return {isCorrect, scoreFraction: isCorrect ? 1 : 0};
+        }
+
+        case 'error-correction': {
+            // Expecting userAnswer = { segmentId: string; correction: string }
+            const {segmentId, correction} = userAnswer || {};
+            const isSegmentCorrect = segmentId === question.correctSegmentId;
+
+            const userCorrection = normalizeText(correction || '');
+            const isCorrectionCorrect = question.acceptedCorrections.some(
+                (ans) => normalizeText(ans) === userCorrection
+            );
+
+            const isCorrect = isSegmentCorrect && isCorrectionCorrect;
+            let scoreFraction = 0;
+            if (isSegmentCorrect && isCorrectionCorrect) scoreFraction = 1;
+            else if (isSegmentCorrect) scoreFraction = 0.5;
+
+            return {
+                isCorrect,
+                scoreFraction,
+                feedback: !isSegmentCorrect
+                    ? 'Incorrect error location selected.'
+                    : !isCorrectionCorrect
+                        ? 'Error location identified, but correction was incorrect.'
+                        : 'Perfect!',
+            };
+        }
+
+        case 'speaking': {
+            // Practice mode: completes upon audio playback / user confirmation
+            const isCompleted = Boolean(userAnswer?.completed);
+            return {isCorrect: isCompleted, scoreFraction: isCompleted ? 1 : 0};
+        }
+
+        default:
+            return {isCorrect: false, scoreFraction: 0};
+    }
+}
+</file>
+
+<file path="public/favicon.svg">
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="46" fill="none" viewBox="0 0 48 46"><path fill="#863bff" d="M25.946 44.938c-.664.845-2.021.375-2.021-.698V33.937a2.26 2.26 0 0 0-2.262-2.262H10.287c-.92 0-1.456-1.04-.92-1.788l7.48-10.471c1.07-1.497 0-3.578-1.842-3.578H1.237c-.92 0-1.456-1.04-.92-1.788L10.013.474c.214-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.471c-1.07 1.498 0 3.579 1.842 3.579h11.377c.943 0 1.473 1.088.89 1.83L25.947 44.94z" style="fill:#863bff;fill:color(display-p3 .5252 .23 1);fill-opacity:1"/><mask id="a" width="48" height="46" x="0" y="0" maskUnits="userSpaceOnUse" style="mask-type:alpha"><path fill="#000" d="M25.842 44.938c-.664.844-2.021.375-2.021-.698V33.937a2.26 2.26 0 0 0-2.262-2.262H10.183c-.92 0-1.456-1.04-.92-1.788l7.48-10.471c1.07-1.498 0-3.579-1.842-3.579H1.133c-.92 0-1.456-1.04-.92-1.787L9.91.473c.214-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.471c-1.07 1.498 0 3.578 1.842 3.578h11.377c.943 0 1.473 1.088.89 1.832L25.843 44.94z" style="fill:#000;fill-opacity:1"/></mask><g mask="url(#a)"><g filter="url(#b)"><ellipse cx="5.508" cy="14.704" fill="#ede6ff" rx="5.508" ry="14.704" style="fill:#ede6ff;fill:color(display-p3 .9275 .9033 1);fill-opacity:1" transform="matrix(.00324 1 1 -.00324 -4.47 31.516)"/></g><g filter="url(#c)"><ellipse cx="10.399" cy="29.851" fill="#ede6ff" rx="10.399" ry="29.851" style="fill:#ede6ff;fill:color(display-p3 .9275 .9033 1);fill-opacity:1" transform="matrix(.00324 1 1 -.00324 -39.328 7.883)"/></g><g filter="url(#d)"><ellipse cx="5.508" cy="30.487" fill="#7e14ff" rx="5.508" ry="30.487" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.814 -25.913 -14.639)scale(1 -1)"/></g><g filter="url(#e)"><ellipse cx="5.508" cy="30.599" fill="#7e14ff" rx="5.508" ry="30.599" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.814 -32.644 -3.334)scale(1 -1)"/></g><g filter="url(#f)"><ellipse cx="5.508" cy="30.599" fill="#7e14ff" rx="5.508" ry="30.599" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="matrix(.00324 1 1 -.00324 -34.34 30.47)"/></g><g filter="url(#g)"><ellipse cx="14.072" cy="22.078" fill="#ede6ff" rx="14.072" ry="22.078" style="fill:#ede6ff;fill:color(display-p3 .9275 .9033 1);fill-opacity:1" transform="rotate(93.35 24.506 48.493)scale(-1 1)"/></g><g filter="url(#h)"><ellipse cx="3.47" cy="21.501" fill="#7e14ff" rx="3.47" ry="21.501" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.009 28.708 47.59)scale(-1 1)"/></g><g filter="url(#i)"><ellipse cx="3.47" cy="21.501" fill="#7e14ff" rx="3.47" ry="21.501" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(89.009 28.708 47.59)scale(-1 1)"/></g><g filter="url(#j)"><ellipse cx=".387" cy="8.972" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(39.51 .387 8.972)"/></g><g filter="url(#k)"><ellipse cx="47.523" cy="-6.092" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 47.523 -6.092)"/></g><g filter="url(#l)"><ellipse cx="41.412" cy="6.333" fill="#47bfff" rx="5.971" ry="9.665" style="fill:#47bfff;fill:color(display-p3 .2799 .748 1);fill-opacity:1" transform="rotate(37.892 41.412 6.333)"/></g><g filter="url(#m)"><ellipse cx="-1.879" cy="38.332" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 -1.88 38.332)"/></g><g filter="url(#n)"><ellipse cx="-1.879" cy="38.332" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 -1.88 38.332)"/></g><g filter="url(#o)"><ellipse cx="35.651" cy="29.907" fill="#7e14ff" rx="4.407" ry="29.108" style="fill:#7e14ff;fill:color(display-p3 .4922 .0767 1);fill-opacity:1" transform="rotate(37.892 35.651 29.907)"/></g><g filter="url(#p)"><ellipse cx="38.418" cy="32.4" fill="#47bfff" rx="5.971" ry="15.297" style="fill:#47bfff;fill:color(display-p3 .2799 .748 1);fill-opacity:1" transform="rotate(37.892 38.418 32.4)"/></g></g><defs><filter id="b" width="60.045" height="41.654" x="-19.77" y="16.149" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="7.659"/></filter><filter id="c" width="90.34" height="51.437" x="-54.613" y="-7.533" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="7.659"/></filter><filter id="d" width="79.355" height="29.4" x="-49.64" y="2.03" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="e" width="79.579" height="29.4" x="-45.045" y="20.029" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="f" width="79.579" height="29.4" x="-43.513" y="21.178" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="g" width="74.749" height="58.852" x="15.756" y="-17.901" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="7.659"/></filter><filter id="h" width="61.377" height="25.362" x="23.548" y="2.284" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="i" width="61.377" height="25.362" x="23.548" y="2.284" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="j" width="56.045" height="63.649" x="-27.636" y="-22.853" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="k" width="54.814" height="64.646" x="20.116" y="-38.415" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="l" width="33.541" height="35.313" x="24.641" y="-11.323" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="m" width="54.814" height="64.646" x="-29.286" y="6.009" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="n" width="54.814" height="64.646" x="-29.286" y="6.009" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="o" width="54.814" height="64.646" x="8.244" y="-2.416" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter><filter id="p" width="39.409" height="43.623" x="18.713" y="10.588" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17158" stdDeviation="4.596"/></filter></defs></svg>
+</file>
+
+<file path="public/icons.svg">
+<svg xmlns="http://www.w3.org/2000/svg">
+  <symbol id="bluesky-icon" viewBox="0 0 16 17">
+    <g clip-path="url(#bluesky-clip)"><path fill="#08060d" d="M7.75 7.735c-.693-1.348-2.58-3.86-4.334-5.097-1.68-1.187-2.32-.981-2.74-.79C.188 2.065.1 2.812.1 3.251s.241 3.602.398 4.13c.52 1.744 2.367 2.333 4.07 2.145-2.495.37-4.71 1.278-1.805 4.512 3.196 3.309 4.38-.71 4.987-2.746.608 2.036 1.307 5.91 4.93 2.746 2.72-2.746.747-4.143-1.747-4.512 1.702.189 3.55-.4 4.07-2.145.156-.528.397-3.691.397-4.13s-.088-1.186-.575-1.406c-.42-.19-1.06-.395-2.741.79-1.755 1.24-3.64 3.752-4.334 5.099"/></g>
+    <defs><clipPath id="bluesky-clip"><path fill="#fff" d="M.1.85h15.3v15.3H.1z"/></clipPath></defs>
+  </symbol>
+  <symbol id="discord-icon" viewBox="0 0 20 19">
+    <path fill="#08060d" d="M16.224 3.768a14.5 14.5 0 0 0-3.67-1.153c-.158.286-.343.67-.47.976a13.5 13.5 0 0 0-4.067 0c-.128-.306-.317-.69-.476-.976A14.4 14.4 0 0 0 3.868 3.77C1.546 7.28.916 10.703 1.231 14.077a14.7 14.7 0 0 0 4.5 2.306q.545-.748.965-1.587a9.5 9.5 0 0 1-1.518-.74q.191-.14.372-.293c2.927 1.369 6.107 1.369 8.999 0q.183.152.372.294-.723.437-1.52.74.418.838.963 1.588a14.6 14.6 0 0 0 4.504-2.308c.37-3.911-.63-7.302-2.644-10.309m-9.13 8.234c-.878 0-1.599-.82-1.599-1.82 0-.998.705-1.82 1.6-1.82.894 0 1.614.82 1.599 1.82.001 1-.705 1.82-1.6 1.82m5.91 0c-.878 0-1.599-.82-1.599-1.82 0-.998.705-1.82 1.6-1.82.893 0 1.614.82 1.599 1.82 0 1-.706 1.82-1.6 1.82"/>
+  </symbol>
+  <symbol id="documentation-icon" viewBox="0 0 21 20">
+    <path fill="none" stroke="#aa3bff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35" d="m15.5 13.333 1.533 1.322c.645.555.967.833.967 1.178s-.322.623-.967 1.179L15.5 18.333m-3.333-5-1.534 1.322c-.644.555-.966.833-.966 1.178s.322.623.966 1.179l1.534 1.321"/>
+    <path fill="none" stroke="#aa3bff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35" d="M17.167 10.836v-4.32c0-1.41 0-2.117-.224-2.68-.359-.906-1.118-1.621-2.08-1.96-.599-.21-1.349-.21-2.848-.21-2.623 0-3.935 0-4.983.369-1.684.591-3.013 1.842-3.641 3.428C3 6.449 3 7.684 3 10.154v2.122c0 2.558 0 3.838.706 4.726q.306.383.713.671c.76.536 1.79.64 3.581.66"/>
+    <path fill="none" stroke="#aa3bff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35" d="M3 10a2.78 2.78 0 0 1 2.778-2.778c.555 0 1.209.097 1.748-.047.48-.129.854-.503.982-.982.145-.54.048-1.194.048-1.749a2.78 2.78 0 0 1 2.777-2.777"/>
+  </symbol>
+  <symbol id="github-icon" viewBox="0 0 19 19">
+    <path fill="#08060d" fill-rule="evenodd" d="M9.356 1.85C5.05 1.85 1.57 5.356 1.57 9.694a7.84 7.84 0 0 0 5.324 7.44c.387.079.528-.168.528-.376 0-.182-.013-.805-.013-1.454-2.165.467-2.616-.935-2.616-.935-.349-.91-.864-1.143-.864-1.143-.71-.48.051-.48.051-.48.787.051 1.2.805 1.2.805.695 1.194 1.817.857 2.268.649.064-.507.27-.857.49-1.052-1.728-.182-3.545-.857-3.545-3.87 0-.857.31-1.558.8-2.104-.078-.195-.349-1 .077-2.078 0 0 .657-.208 2.14.805a7.5 7.5 0 0 1 1.946-.26c.657 0 1.328.092 1.946.26 1.483-1.013 2.14-.805 2.14-.805.426 1.078.155 1.883.078 2.078.502.546.799 1.247.799 2.104 0 3.013-1.818 3.675-3.558 3.87.284.247.528.714.528 1.454 0 1.052-.012 1.896-.012 2.156 0 .208.142.455.528.377a7.84 7.84 0 0 0 5.324-7.441c.013-4.338-3.48-7.844-7.773-7.844" clip-rule="evenodd"/>
+  </symbol>
+  <symbol id="social-icon" viewBox="0 0 20 20">
+    <path fill="none" stroke="#aa3bff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35" d="M12.5 6.667a4.167 4.167 0 1 0-8.334 0 4.167 4.167 0 0 0 8.334 0"/>
+    <path fill="none" stroke="#aa3bff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35" d="M2.5 16.667a5.833 5.833 0 0 1 8.75-5.053m3.837.474.513 1.035c.07.144.257.282.414.309l.93.155c.596.1.736.536.307.965l-.723.73a.64.64 0 0 0-.152.531l.207.903c.164.715-.213.991-.84.618l-.872-.52a.63.63 0 0 0-.577 0l-.872.52c-.624.373-1.003.094-.84-.618l.207-.903a.64.64 0 0 0-.152-.532l-.723-.729c-.426-.43-.289-.864.306-.964l.93-.156a.64.64 0 0 0 .412-.31l.513-1.034c.28-.562.735-.562 1.012 0"/>
+  </symbol>
+  <symbol id="x-icon" viewBox="0 0 19 19">
+    <path fill="#08060d" fill-rule="evenodd" d="M1.893 1.98c.052.072 1.245 1.769 2.653 3.77l2.892 4.114c.183.261.333.48.333.486s-.068.089-.152.183l-.522.593-.765.867-3.597 4.087c-.375.426-.734.834-.798.905a1 1 0 0 0-.118.148c0 .01.236.017.664.017h.663l.729-.83c.4-.457.796-.906.879-.999a692 692 0 0 0 1.794-2.038c.034-.037.301-.34.594-.675l.551-.624.345-.392a7 7 0 0 1 .34-.374c.006 0 .93 1.306 2.052 2.903l2.084 2.965.045.063h2.275c1.87 0 2.273-.003 2.266-.021-.008-.02-1.098-1.572-3.894-5.547-2.013-2.862-2.28-3.246-2.273-3.266.008-.019.282-.332 2.085-2.38l2-2.274 1.567-1.782c.022-.028-.016-.03-.65-.03h-.674l-.3.342a871 871 0 0 1-1.782 2.025c-.067.075-.405.458-.75.852a100 100 0 0 1-.803.91c-.148.172-.299.344-.99 1.127-.304.343-.32.358-.345.327-.015-.019-.904-1.282-1.976-2.808L6.365 1.85H1.8zm1.782.91 8.078 11.294c.772 1.08 1.413 1.973 1.425 1.984.016.017.241.02 1.05.017l1.03-.004-2.694-3.766L7.796 5.75 5.722 2.852l-1.039-.004-1.039-.004z" clip-rule="evenodd"/>
+  </symbol>
+</svg>
+</file>
+
+<file path="src/assets/react.svg">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="35.93" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 228"><path fill="#00D8FF" d="M210.483 73.824a171.49 171.49 0 0 0-8.24-2.597c.465-1.9.893-3.777 1.273-5.621c6.238-30.281 2.16-54.676-11.769-62.708c-13.355-7.7-35.196.329-57.254 19.526a171.23 171.23 0 0 0-6.375 5.848a155.866 155.866 0 0 0-4.241-3.917C100.759 3.829 77.587-4.822 63.673 3.233C50.33 10.957 46.379 33.89 51.995 62.588a170.974 170.974 0 0 0 1.892 8.48c-3.28.932-6.445 1.924-9.474 2.98C17.309 83.498 0 98.307 0 113.668c0 15.865 18.582 31.778 46.812 41.427a145.52 145.52 0 0 0 6.921 2.165a167.467 167.467 0 0 0-2.01 9.138c-5.354 28.2-1.173 50.591 12.134 58.266c13.744 7.926 36.812-.22 59.273-19.855a145.567 145.567 0 0 0 5.342-4.923a168.064 168.064 0 0 0 6.92 6.314c21.758 18.722 43.246 26.282 56.54 18.586c13.731-7.949 18.194-32.003 12.4-61.268a145.016 145.016 0 0 0-1.535-6.842c1.62-.48 3.21-.974 4.76-1.488c29.348-9.723 48.443-25.443 48.443-41.52c0-15.417-17.868-30.326-45.517-39.844Zm-6.365 70.984c-1.4.463-2.836.91-4.3 1.345c-3.24-10.257-7.612-21.163-12.963-32.432c5.106-11 9.31-21.767 12.459-31.957c2.619.758 5.16 1.557 7.61 2.4c23.69 8.156 38.14 20.213 38.14 29.504c0 9.896-15.606 22.743-40.946 31.14Zm-10.514 20.834c2.562 12.94 2.927 24.64 1.23 33.787c-1.524 8.219-4.59 13.698-8.382 15.893c-8.067 4.67-25.32-1.4-43.927-17.412a156.726 156.726 0 0 1-6.437-5.87c7.214-7.889 14.423-17.06 21.459-27.246c12.376-1.098 24.068-2.894 34.671-5.345a134.17 134.17 0 0 1 1.386 6.193ZM87.276 214.515c-7.882 2.783-14.16 2.863-17.955.675c-8.075-4.657-11.432-22.636-6.853-46.752a156.923 156.923 0 0 1 1.869-8.499c10.486 2.32 22.093 3.988 34.498 4.994c7.084 9.967 14.501 19.128 21.976 27.15a134.668 134.668 0 0 1-4.877 4.492c-9.933 8.682-19.886 14.842-28.658 17.94ZM50.35 144.747c-12.483-4.267-22.792-9.812-29.858-15.863c-6.35-5.437-9.555-10.836-9.555-15.216c0-9.322 13.897-21.212 37.076-29.293c2.813-.98 5.757-1.905 8.812-2.773c3.204 10.42 7.406 21.315 12.477 32.332c-5.137 11.18-9.399 22.249-12.634 32.792a134.718 134.718 0 0 1-6.318-1.979Zm12.378-84.26c-4.811-24.587-1.616-43.134 6.425-47.789c8.564-4.958 27.502 2.111 47.463 19.835a144.318 144.318 0 0 1 3.841 3.545c-7.438 7.987-14.787 17.08-21.808 26.988c-12.04 1.116-23.565 2.908-34.161 5.309a160.342 160.342 0 0 1-1.76-7.887Zm110.427 27.268a347.8 347.8 0 0 0-7.785-12.803c8.168 1.033 15.994 2.404 23.343 4.08c-2.206 7.072-4.956 14.465-8.193 22.045a381.151 381.151 0 0 0-7.365-13.322Zm-45.032-43.861c5.044 5.465 10.096 11.566 15.065 18.186a322.04 322.04 0 0 0-30.257-.006c4.974-6.559 10.069-12.652 15.192-18.18ZM82.802 87.83a323.167 323.167 0 0 0-7.227 13.238c-3.184-7.553-5.909-14.98-8.134-22.152c7.304-1.634 15.093-2.97 23.209-3.984a321.524 321.524 0 0 0-7.848 12.897Zm8.081 65.352c-8.385-.936-16.291-2.203-23.593-3.793c2.26-7.3 5.045-14.885 8.298-22.6a321.187 321.187 0 0 0 7.257 13.246c2.594 4.48 5.28 8.868 8.038 13.147Zm37.542 31.03c-5.184-5.592-10.354-11.779-15.403-18.433c4.902.192 9.899.29 14.978.29c5.218 0 10.376-.117 15.453-.343c-4.985 6.774-10.018 12.97-15.028 18.486Zm52.198-57.817c3.422 7.8 6.306 15.345 8.596 22.52c-7.422 1.694-15.436 3.058-23.88 4.071a382.417 382.417 0 0 0 7.859-13.026a347.403 347.403 0 0 0 7.425-13.565Zm-16.898 8.101a358.557 358.557 0 0 1-12.281 19.815a329.4 329.4 0 0 1-23.444.823c-7.967 0-15.716-.248-23.178-.732a310.202 310.202 0 0 1-12.513-19.846h.001a307.41 307.41 0 0 1-10.923-20.627a310.278 310.278 0 0 1 10.89-20.637l-.001.001a307.318 307.318 0 0 1 12.413-19.761c7.613-.576 15.42-.876 23.31-.876H128c7.926 0 15.743.303 23.354.883a329.357 329.357 0 0 1 12.335 19.695a358.489 358.489 0 0 1 11.036 20.54a329.472 329.472 0 0 1-11 20.722Zm22.56-122.124c8.572 4.944 11.906 24.881 6.52 51.026c-.344 1.668-.73 3.367-1.15 5.09c-10.622-2.452-22.155-4.275-34.23-5.408c-7.034-10.017-14.323-19.124-21.64-27.008a160.789 160.789 0 0 1 5.888-5.4c18.9-16.447 36.564-22.941 44.612-18.3ZM128 90.808c12.625 0 22.86 10.235 22.86 22.86s-10.235 22.86-22.86 22.86s-22.86-10.235-22.86-22.86s10.235-22.86 22.86-22.86Z"></path></svg>
+</file>
+
+<file path="src/assets/vite.svg">
+<svg xmlns="http://www.w3.org/2000/svg" width="77" height="47" fill="none" aria-labelledby="vite-logo-title" viewBox="0 0 77 47"><title id="vite-logo-title">Vite</title><style>.parenthesis{fill:#000}@media (prefers-color-scheme:dark){.parenthesis{fill:#fff}}</style><path fill="#9135ff" d="M40.151 45.71c-.663.844-2.02.374-2.02-.699V34.708a2.26 2.26 0 0 0-2.262-2.262H24.493c-.92 0-1.457-1.04-.92-1.788l7.479-10.471c1.07-1.498 0-3.578-1.842-3.578H15.443c-.92 0-1.456-1.04-.92-1.788l9.696-13.576c.213-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.472c-1.07 1.497 0 3.578 1.842 3.578h11.376c.944 0 1.474 1.087.89 1.83L40.153 45.712z"/><mask id="a" width="48" height="47" x="14" y="0" maskUnits="userSpaceOnUse" style="mask-type:alpha"><path fill="#000" d="M40.047 45.71c-.663.843-2.02.374-2.02-.699V34.708a2.26 2.26 0 0 0-2.262-2.262H24.389c-.92 0-1.457-1.04-.92-1.788l7.479-10.472c1.07-1.497 0-3.578-1.842-3.578H15.34c-.92 0-1.456-1.04-.92-1.788l9.696-13.575c.213-.297.556-.474.92-.474H53.93c.92 0 1.456 1.04.92 1.788L47.37 13.03c-1.07 1.498 0 3.578 1.842 3.578h11.376c.944 0 1.474 1.088.89 1.831L40.049 45.712z"/></mask><g mask="url(#a)"><g filter="url(#b)"><ellipse cx="5.508" cy="14.704" fill="#eee6ff" rx="5.508" ry="14.704" transform="rotate(269.814 20.96 11.29)scale(-1 1)"/></g><g filter="url(#c)"><ellipse cx="10.399" cy="29.851" fill="#eee6ff" rx="10.399" ry="29.851" transform="rotate(89.814 -16.902 -8.275)scale(1 -1)"/></g><g filter="url(#d)"><ellipse cx="5.508" cy="30.487" fill="#8900ff" rx="5.508" ry="30.487" transform="rotate(89.814 -19.197 -7.127)scale(1 -1)"/></g><g filter="url(#e)"><ellipse cx="5.508" cy="30.599" fill="#8900ff" rx="5.508" ry="30.599" transform="rotate(89.814 -25.928 4.177)scale(1 -1)"/></g><g filter="url(#f)"><ellipse cx="5.508" cy="30.599" fill="#8900ff" rx="5.508" ry="30.599" transform="rotate(89.814 -25.738 5.52)scale(1 -1)"/></g><g filter="url(#g)"><ellipse cx="14.072" cy="22.078" fill="#eee6ff" rx="14.072" ry="22.078" transform="rotate(93.35 31.245 55.578)scale(-1 1)"/></g><g filter="url(#h)"><ellipse cx="3.47" cy="21.501" fill="#8900ff" rx="3.47" ry="21.501" transform="rotate(89.009 35.419 55.202)scale(-1 1)"/></g><g filter="url(#i)"><ellipse cx="3.47" cy="21.501" fill="#8900ff" rx="3.47" ry="21.501" transform="rotate(89.009 35.419 55.202)scale(-1 1)"/></g><g filter="url(#j)"><ellipse cx="14.592" cy="9.743" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(39.51 14.592 9.743)"/></g><g filter="url(#k)"><ellipse cx="61.728" cy="-5.321" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(37.892 61.728 -5.32)"/></g><g filter="url(#l)"><ellipse cx="55.618" cy="7.104" fill="#00c2ff" rx="5.971" ry="9.665" transform="rotate(37.892 55.618 7.104)"/></g><g filter="url(#m)"><ellipse cx="12.326" cy="39.103" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(37.892 12.326 39.103)"/></g><g filter="url(#n)"><ellipse cx="12.326" cy="39.103" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(37.892 12.326 39.103)"/></g><g filter="url(#o)"><ellipse cx="49.857" cy="30.678" fill="#8900ff" rx="4.407" ry="29.108" transform="rotate(37.892 49.857 30.678)"/></g><g filter="url(#p)"><ellipse cx="52.623" cy="33.171" fill="#00c2ff" rx="5.971" ry="15.297" transform="rotate(37.892 52.623 33.17)"/></g></g><path d="M6.919 0c-9.198 13.166-9.252 33.575 0 46.789h6.215c-9.25-13.214-9.196-33.623 0-46.789zm62.424 0h-6.215c9.198 13.166 9.252 33.575 0 46.789h6.215c9.25-13.214 9.196-33.623 0-46.789" class="parenthesis"/><defs><filter id="b" width="60.045" height="41.654" x="-5.564" y="16.92" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="7.659"/></filter><filter id="c" width="90.34" height="51.437" x="-40.407" y="-6.762" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="7.659"/></filter><filter id="d" width="79.355" height="29.4" x="-35.435" y="2.801" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="e" width="79.579" height="29.4" x="-30.84" y="20.8" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="f" width="79.579" height="29.4" x="-29.307" y="21.949" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="g" width="74.749" height="58.852" x="29.961" y="-17.13" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="7.659"/></filter><filter id="h" width="61.377" height="25.362" x="37.754" y="3.055" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="i" width="61.377" height="25.362" x="37.754" y="3.055" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="j" width="56.045" height="63.649" x="-13.43" y="-22.082" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="k" width="54.814" height="64.646" x="34.321" y="-37.644" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="l" width="33.541" height="35.313" x="38.847" y="-10.552" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="m" width="54.814" height="64.646" x="-15.081" y="6.78" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="n" width="54.814" height="64.646" x="-15.081" y="6.78" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="o" width="54.814" height="64.646" x="22.45" y="-1.645" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter><filter id="p" width="39.409" height="43.623" x="32.919" y="11.36" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feGaussianBlur result="effect1_foregroundBlur_2002_17286" stdDeviation="4.596"/></filter></defs></svg>
+</file>
+
+<file path="src/mock/GRAMMAR.ts">
+import type {Lesson} from "../types";
+
+export const GRAMMAR_DATA: Lesson[] = [
+  {
+    id: 'les-gram-01',
+    title: 'Thì Hiện Tại Đơn (Present Simple)',
+    track: 'grammar',
+    level: 'beginner',
+    durationMinutes: 15,
+    description: 'Nắm vững cấu trúc S + V(s/es), cách chia động từ và dấu hiệu nhận biết thì hiện tại đơn.',
+    content: {
+      theory: 'Thì Hiện Tại Đơn dùng để diễn tả thói quen hàng ngày, sự thật hiển nhiên hoặc lịch trình cố định.',
+      examples: [
+        'She goes to school every day.',
+        'The sun rises in the East.',
+        'Do you like coffee?'
+      ]
+    },
+    questionIds: ['q-gram-01', 'q-gram-02', 'q-gram-03']
+  },
+  {
+    id: 'les-gram-02',
+    title: 'Thì Quá Khứ Đơn (Past Simple)',
+    track: 'grammar',
+    level: 'beginner',
+    durationMinutes: 15,
+    description: 'Cách sử dụng động từ có quy tắc (-ed) và bất quy tắc để nói về các sự việc đã kết thúc trong quá quá.',
+    content: {
+      theory: 'Dùng diễn tả hành động đã xảy ra và kết thúc hoàn toàn trong quá quá tại một thời điểm xác định.',
+      examples: [
+        'I visited London last summer.',
+        'They didn\'t watch the movie yesterday.',
+        'What time did you wake up this morning?'
+      ]
+    },
+    questionIds: ['q-gram-04', 'q-gram-05']
+  },
+  {
+    id: 'les-gram-03',
+    title: 'Thì Hiện Tại Hoàn Thành (Present Perfect)',
+    track: 'grammar',
+    level: 'intermediate',
+    durationMinutes: 20,
+    description: 'Công thức S + have/has + V3/ed và cách phân biệt với thì Quá khứ đơn.',
+    content: {
+      theory: 'Diễn tả hành động bắt đầu trong quá quá, kéo dài đến hiện tại và có thể tiếp tục ở tương lai, hoặc trải nghiệm đã từng làm.',
+      examples: [
+        'I have lived in Hanoi for 5 years.',
+        'She has already finished her homework.',
+        'Have you ever visited Japan?'
+      ]
+    },
+    questionIds: ['q-gram-06', 'q-gram-07']
+  }
+];
+</file>
+
+<file path="src/mock/PRONUNCIATION.ts">
+import type {Lesson} from "../types";
+
+export const PRONUNCIATION_DATA: Lesson[] = [
+    {
+        id: 'les-pron-01',
+        title: 'Phân biệt âm /s/ và /ʃ/',
+        track: 'pronunciation',
+        level: 'beginner',
+        durationMinutes: 10,
+        description: 'Hướng dẫn khẩu hình miệng và mẹo phát âm chuẩn hai phụ âm dễ nhầm lẫn /s/ (sea) và /ʃ/ (she).',
+        content: {
+            theory: 'Âm /s/ là âm xát vô thanh với khẩu hình miệng cười mỉm, luồng khí đi qua kẽ răng. Âm /ʃ/ yêu cầu tròn môi, đẩy hơi mạnh hơn.',
+            examples: [
+                'sea /siː/ vs she /ʃiː/',
+                'sip /sɪp/ vs ship /ʃɪp/',
+                'sell /sel/ vs shell /ʃel/'
+            ]
+        },
+        questionIds: ['q-pron-01', 'q-pron-02']
+    },
+    {
+        id: 'les-pron-02',
+        title: 'Phân biệt âm /r/ và /l/',
+        track: 'pronunciation',
+        level: 'intermediate',
+        durationMinutes: 12,
+        description: 'Khắc phục lỗi phát âm cuộn lưỡi với âm /r/ và uốn cong đầu lưỡi chạm vòm miệng với âm /l/.',
+        content: {
+            theory: 'Khi phát âm /l/, đầu lưỡi chạm vào lợi phía sau răng cửa trên. Khi phát âm /r/, lưỡi hơi cong về phía sau nhưng KHÔNG chạm vào bất kỳ phần nào trong miệng.',
+            examples: [
+                'light /laɪt/ vs right /raɪt/',
+                'lock /lɒk/ vs rock /rɒk/',
+                'fly /flaɪ/ vs fry /fraɪ/'
+            ]
+        },
+        questionIds: ['q-pron-03', 'q-pron-04']
+    },
+    {
+        id: 'les-pron-03',
+        title: 'Trọng âm từ (Word Stress)',
+        track: 'pronunciation',
+        level: 'intermediate',
+        durationMinutes: 15,
+        description: 'Quy tắc nhấn trọng âm đối với danh từ, động từ và tính từ hai âm tiết.',
+        content: {
+            theory: 'Thông thường, danh từ và tính từ 2 âm tiết có trọng âm rơi vào âm tiết thứ nhất. Động từ 2 âm tiết thường có trọng âm rơi vào âm tiết thứ hai.',
+            examples: [
+                'Danh từ: PRE-sent /ˈprez.ənt/, COF-fee /ˈkɒf.i/',
+                'Động từ: pre-SENT /prɪˈzent/, de-CIDE /dɪˈsaɪd/',
+                'Tính từ: hap-PY /ˈhæp.i/, CLE-ver /ˈklev.ər/'
+            ]
+        },
+        questionIds: ['q-pron-05']
+    }
+];
+</file>
+
+<file path="src/mock/VOCABULARY.ts">
+import type {Lesson} from "../types";
+
+export const VOCABULARY_DATA: Lesson[] = [
+    {
+        id: 'les-vocab-01',
+        title: 'Từ vựng chủ đề Du lịch (Travel & Transportation)',
+        track: 'vocabulary',
+        level: 'beginner',
+        durationMinutes: 12,
+        description: 'Học các từ vựng thiết yếu khi đi sân bay, đặt phòng khách sạn và di chuyển phương tiện công cộng.',
+        content: {
+            theory: 'Bộ từ vựng quan trọng giúp bạn tự tin giao tiếp khi đi du lịch nước ngoài.',
+            vocabularyList: [
+                {word: 'Boarding pass', meaning: 'Thẻ lên máy bay', phonetic: '/ˈbɔː.dɪŋ ˌpɑːs/'},
+                {word: 'Luggage', meaning: 'Hành lý', phonetic: '/ˈlʌɡ.ɪdʒ/'},
+                {word: 'Accommodation', meaning: 'Chỗ ở / Khách sạn', phonetic: '/əˌkɒm.əˈdeɪ.ʃən/'},
+                {word: 'Destination', meaning: 'Điểm đến', phonetic: '/ˌdes.tɪˈneɪ.ʃən/'}
+            ],
+            examples: [
+                'Please show your boarding pass at gate 4.',
+                'We arrived at our destination after a 5-hour drive.'
+            ]
+        },
+        questionIds: ['q-vocab-01', 'q-vocab-02']
+    },
+    {
+        id: 'les-vocab-02',
+        title: 'Từ vựng Chủ đề Ẩm thực (Food & Dining)',
+        track: 'vocabulary',
+        level: 'beginner',
+        durationMinutes: 12,
+        description: 'Các từ vựng về món ăn, hương vị và câu giao tiếp thông dụng tại nhà hàng.',
+        content: {
+            theory: 'Từ vựng gọi món, mô tả khẩu vị và thanh toán hóa đơn.',
+            vocabularyList: [
+                {word: 'Appetizer', meaning: 'Món khai vị', phonetic: '/ˈæp.ə.taɪ.zər/'},
+                {word: 'Delicious', meaning: 'Ngon miệng', phonetic: '/dɪˈlɪʃ.əs/'},
+                {word: 'Receipt', meaning: 'Hóa đơn thanh toán', phonetic: '/rɪˈsiːt/'},
+                {word: 'Vegetarian', meaning: 'Ăn chay', phonetic: '/ˌvedʒ.ɪˈteə.ri.ən/'}
+            ],
+            examples: [
+                'Would you like to order an appetizer first?',
+                'Could we have the receipt, please?'
+            ]
+        },
+        questionIds: ['q-vocab-03', 'q-vocab-04']
+    },
+    {
+        id: 'les-vocab-03',
+        title: 'Từ vựng Công sở & Kinh doanh (Business & Office)',
+        track: 'vocabulary',
+        level: 'intermediate',
+        durationMinutes: 18,
+        description: 'Từ vựng dùng trong cuộc họp, gửi email công việc và thảo luận hợp đồng.',
+        content: {
+            theory: 'Từ vựng tiếng Anh chuyên ngành thương mại dành cho môi trường làm việc chuyên nghiệp.',
+            vocabularyList: [
+                {word: 'Deadline', meaning: 'Hạn chót', phonetic: '/ˈded.laɪn/'},
+                {word: 'Colleague', meaning: 'Đồng nghiệp', phonetic: '/ˈkɒl.iːɡ/'},
+                {word: 'Negotiate', meaning: 'Đàm phán / Thương lượng', phonetic: '/nəˈɡəʊ.ʃi.eɪt/'},
+                {word: 'Proposal', meaning: 'Đề xuất / Bản kiến nghị', phonetic: '/prəˈpəʊ.zəl/'}
+            ],
+            examples: [
+                'We need to submit the proposal before the deadline.',
+                'He is negotiating a new contract with the client.'
+            ]
+        },
+        questionIds: ['q-vocab-05']
+    }
+];
+</file>
+
+<file path="src/App.css">
+
+</file>
+
+<file path="src/data.ts">
+import {GRAMMAR_CHEATSHEET, PRONUNCIATION_CHEATSHEET, VOCABULARY_CHEATSHEET} from './mock/CHEATSHEET';
+import {GRAMMAR_DATA} from './mock/GRAMMAR';
+import {QUESTIONS} from './mock/QUESTIONS';
+import {TOPICS, TOPIC_MAP} from './mock/TOPICS';
+import {PRONUNCIATION_DATA} from './mock/PRONUNCIATION';
+import {VOCABULARY_DATA} from './mock/VOCABULARY';
+import type {Lesson} from './types';
+
+export const LESSONS_DATA: Lesson[] = [...PRONUNCIATION_DATA, ...GRAMMAR_DATA, ...VOCABULARY_DATA];
+export const QUESTION_BANK = QUESTIONS;
+
+export {
+    TOPICS,
+    TOPIC_MAP,
+    GRAMMAR_CHEATSHEET,
+    VOCABULARY_CHEATSHEET,
+    PRONUNCIATION_CHEATSHEET,
+};
+</file>
+
+<file path="src/index.css">
+@import "tailwindcss";
+</file>
+
+<file path="src/main.tsx">
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import { App } from './App.tsx'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+</file>
+
+<file path="src/storage.ts">
+import type {ExamResult, UserProgress} from './types';
+
+const STORAGE_KEY = 'ENGLISH_LEARNING_PROGRESS_V1';
+
+const DEFAULT_PROGRESS: UserProgress = {
+    version: 1,
+    completedLessonIds: [],
+    quizScores: {},
+    questionStats: {},
+    examHistory: [],
+};
+
+function migrateProgress(raw: unknown): UserProgress {
+    const data = raw as Partial<UserProgress> & {completedLessonIds?: string[]; quizScores?: Record<string, number>};
+
+    return {
+        version: 1,
+        completedLessonIds: data.completedLessonIds ?? [],
+        quizScores: data.quizScores ?? {},
+        questionStats: data.questionStats ?? {},
+        examHistory: data.examHistory ?? [],
+    };
+}
+
+export function getProgress(): UserProgress {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            const migrated = migrateProgress(parsed);
+
+            // Re-save if new fields were missing (backwards-compatible migration)
+            if (!parsed.questionStats || !parsed.examHistory) {
+                saveProgress(migrated);
+            }
+
+            return migrated;
+        }
+    } catch (error) {
+        console.error('Failed to parse progress from localStorage:', error);
+    }
+
+    return DEFAULT_PROGRESS;
+}
+
+export function saveProgress(progress: UserProgress): void {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    } catch (error) {
+        console.error('Failed to save progress:', error);
+    }
+}
+
+export function updateLessonComplete(lessonId: string, score?: number): UserProgress {
+    const progress = getProgress();
+    if (!progress.completedLessonIds.includes(lessonId)) {
+        progress.completedLessonIds.push(lessonId);
+    }
+    if (score !== undefined) {
+        progress.quizScores[lessonId] = score;
+    }
+    saveProgress(progress);
+    return progress;
+}
+
+export function recordQuestionAttempt(
+    questionId: string,
+    isCorrect: boolean
+): UserProgress {
+    const progress = getProgress();
+    const current = progress.questionStats[questionId] || {
+        attempts: 0,
+        correctCount: 0,
+        lastAttemptTimestamp: 0,
+    };
+
+    progress.questionStats[questionId] = {
+        attempts: current.attempts + 1,
+        correctCount: current.correctCount + (isCorrect ? 1 : 0),
+        lastAttemptTimestamp: Date.now(),
+    };
+
+    saveProgress(progress);
+    return progress;
+}
+
+export function recordExamResult(result: ExamResult): UserProgress {
+    const progress = getProgress();
+    progress.examHistory.unshift(result);
+    saveProgress(progress);
+    return progress;
+}
+</file>
+
+<file path="src/style.css">
+:root {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --bg-color: #f8fafc;
+  --card-bg: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --radius: 12px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  line-height: 1.5;
+  padding: 20px;
+}
+
+#app {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Dashboard & Cards */
+.app-header {
+  margin-bottom: 24px;
+}
+.subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+.progress-card {
+  background: var(--card-bg);
+  padding: 20px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  margin-bottom: 24px;
+}
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+}
+.progress-bar-bg {
+  background: var(--border-color);
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  background: var(--primary);
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+/* Track Filters */
+.track-filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+.filter-btn {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+.filter-btn.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+/* Lessons Grid */
+.lessons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+.lesson-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 20px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.lesson-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+.lesson-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  margin-bottom: 12px;
+}
+.badge {
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+.badge.pronunciation { background: #dbeafe; color: #1e40af; }
+.badge.grammar { background: #fef3c7; color: #92400e; }
+.badge.vocabulary { background: #dcfce7; color: #166534; }
+
+.lesson-card h3 {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+.lesson-card p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.lesson-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  border-top: 1px solid var(--border-color);
+  padding-top: 12px;
+}
+.score-tag {
+  color: #16a34a;
+  font-weight: 600;
+}
+
+/* Buttons */
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-main);
+}
+.btn-back {
+  background: none;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+/* Lesson Detail & Quiz Styles */
+.lesson-detail-container, .quiz-container, .result-container {
+  background: var(--card-bg);
+  padding: 24px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+}
+.theory-box, .grammar-box, .vocab-list {
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 8px;
+  margin: 16px 0;
+  border-left: 4px solid var(--primary);
+}
+.code-snippet {
+  background: #0f172a;
+  color: #38bdf8;
+  padding: 10px;
+  border-radius: 6px;
+  font-family: monospace;
+  margin: 10px 0;
+}
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 20px 0;
+}
+.option-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.option-item:hover, .option-item.selected {
+  background: #eff6ff;
+  border-color: var(--primary);
+}
+.result-card {
+  text-align: center;
+  padding: 40px 20px;
+}
+.result-icon { font-size: 3rem; margin-bottom: 16px; }
+.score-display { font-size: 1.5rem; margin: 12px 0; }
+</file>
+
+<file path="src/types.ts">
+export type Track = 'vocabulary' | 'grammar' | 'pronunciation';
+export type Difficulty = 'beginner' | 'intermediate' | 'advanced';
+export type QuestionType =
+    | 'multiple-choice'
+    | 'fill-blank'
+    | 'error-correction'
+    | 'listening'
+    | 'speaking';
+
+export interface Topic {
+    id: string;
+    name: string;
+    track: Track;
+    description?: string;
+}
+
+// --- Base Question Metadata ---
+export interface BaseQuestion {
+    id: string;
+    track: Track;
+    topicIds: string[];
+    lessonIds?: string[];
+    difficulty: Difficulty;
+    points?: number;
+    explanation?: string;
+    tags?: string[];
+}
+
+// --- Question Type Models ---
+export interface MultipleChoiceQuestion extends BaseQuestion {
+    type: 'multiple-choice';
+    question: string;
+    options: string[];
+    correctIndex: number;
+}
+
+export interface FillBlankQuestion extends BaseQuestion {
+    type: 'fill-blank';
+    question: string; // e.g. "She _____ to school every day."
+    acceptedAnswers: string[];
+    caseSensitive?: boolean;
+}
+
+export interface Segment {
+    id: string;
+    text: string;
+    label?: string; // e.g., "A", "B", "C"
+}
+
+export interface ErrorCorrectionQuestion extends BaseQuestion {
+    type: 'error-correction';
+    prompt: string; // e.g., "Identify the error and type the correction:"
+    segments: Segment[];
+    correctSegmentId: string;
+    acceptedCorrections: string[];
+}
+
+export interface ListeningQuestion extends BaseQuestion {
+    type: 'listening';
+    question: string;
+    audio: {
+        text?: string; // Used for Web Speech API Synthesis
+        url?: string;  // Priority audio URL if provided
+    };
+    options: string[];
+    correctIndex: number;
+}
+
+export interface SpeakingQuestion extends BaseQuestion {
+    type: 'speaking';
+    promptText: string;
+    targetPhonetics?: string;
+    sampleAudioUrl?: string;
+}
+
+export type Question =
+    | MultipleChoiceQuestion
+    | FillBlankQuestion
+    | ErrorCorrectionQuestion
+    | ListeningQuestion
+    | SpeakingQuestion;
+
+// --- Lesson Model ---
+export interface Lesson {
+    id: string;
+    title: string;
+    track: Track;
+    level: Difficulty;
+    durationMinutes: number;
+    description: string;
+    content: {
+        theory: string;
+        vocabularyList?: Array<{word: string; meaning: string; phonetic?: string;}>;
+        examples?: string[];
+    };
+    questionIds: string[]; // References Central Question Bank
+}
+
+// --- Cheatsheet Models ---
+export interface GrammarCheatsheetItem {
+    id: string;
+    topicId: string;
+    title: string;
+    rule: string;
+    structure?: string;
+    usage: string[];
+    signalWords?: string[];
+    commonMistakes?: string[];
+    examples: string[];
+}
+
+export interface VocabularyCheatsheetGroup {
+    id: string;
+    topicId: string;
+    category: string;
+    items: Array<{
+        word: string;
+        meaning: string;
+        partOfSpeech: string;
+        example?: string;
+        notes?: string;
+    }>;
+}
+
+export interface PronunciationCheatsheetItem {
+    id: string;
+    topicId: string;
+    soundOrTopic: string;
+    description: string;
+    mouthPosition?: string;
+    minimalPairs?: Array<[string, string]>;
+    examples: string[];
+    commonMistakes?: string[];
+}
+
+// --- User Progress & History ---
+export interface ExamResult {
+    id: string;
+    timestamp: number;
+    scorePercentage: number;
+    totalQuestions: number;
+    correctAnswersCount: number;
+    trackScores: Record<Track, number>;
+    topicScores: Record<string, {total: number; correct: number;}>;
+    userAnswers: Record<string, {answer: any; isCorrect: boolean;}>;
+}
+
+export interface UserProgress {
+    version: 1;
+    completedLessonIds: string[];
+    quizScores: Record<string, number>; // Deprecated / Backwards compatibility
+    questionStats: Record<
+        string,
+        {
+            attempts: number;
+            correctCount: number;
+            lastAttemptTimestamp: number;
+        }
+    >;
+    examHistory: ExamResult[];
+}
+</file>
+
+<file path=".gitignore">
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+</file>
+
+<file path="eslint.config.js">
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import tseslint from 'typescript-eslint'
+import { defineConfig, globalIgnores } from 'eslint/config'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      js.configs.recommended,
+      tseslint.configs.recommended,
+      reactHooks.configs.flat.recommended,
+      reactRefresh.configs.vite,
+    ],
+    languageOptions: {
+      globals: globals.browser,
+    },
+  },
+])
+</file>
+
+<file path="index.html">
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>english-learning-mvp</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+</file>
+
+<file path="package.json">
+{
+  "name": "english-learning-mvp",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^10.10.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.6",
+    "globals": "^17.12.0",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.69.0",
+    "vite": "^8.3.0"
+  }
+}
+</file>
+
+<file path="README.md">
+# React + TypeScript + Vite
+
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+
+Currently, two official plugins are available:
+
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+
+## React Compiler
+
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+
+## Expanding the ESLint configuration
+
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
+
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+
+```
+
+You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+
+```
+</file>
+
+<file path="tsconfig.app.json">
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "es2023",
+    "lib": ["ES2023", "DOM"],
+    "module": "esnext",
+    "types": ["vite/client"],
+    "allowArbitraryExtensions": true,
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"]
+}
+</file>
+
+<file path="tsconfig.json">
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
+}
+</file>
+
+<file path="tsconfig.node.json">
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
+    "target": "es2023",
+    "lib": ["ES2023"],
+    "types": ["node"],
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "module": "nodenext",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    /* Linting */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["vite.config.ts"]
+}
+</file>
+
+<file path="vite.config.ts">
+import tailwindcss from '@tailwindcss/vite';
+import react from '@vitejs/plugin-react';
+import {defineConfig} from 'vite';
+
+export default defineConfig({
+    plugins: [
+        react(),
+        tailwindcss(),
+    ],
+});
+</file>
+
+<file path="src/App.tsx">
+import {useEffect, useMemo, useState} from 'react';
+import {QuestionRenderer} from './components/quiz/QuestionRenderer';
+import {LESSONS_DATA, QUESTION_BANK, TOPIC_MAP} from './data';
+import {CheatsheetView} from './features/cheatsheat/CheatsheetView';
+import {ExamBuilder} from './features/exam/ExamBuilder';
+import {ExamResultView} from './features/exam/ExamResultView';
+import {PracticeConfig} from './features/practice/PracticeConfig';
+import {PracticeSession} from './features/practice/PracticeSession';
+import {getQuestionsByIds} from './services/questionBank';
+import {type ExamConfig, generateExam} from './services/examGenerator';
+import {evaluateAnswer} from './services/scoring';
+import {getProgress, recordExamResult, recordQuestionAttempt, saveProgress, updateLessonComplete} from './storage';
+import type {ExamResult, Lesson, Question, Track, UserProgress} from './types';
+
+type NavigationTab = 'dashboard' | 'lessons' | 'cheatsheet' | 'practice' | 'exam';
+
+const TRACK_BADGES: Record<string, { label: string; style: string }> = {
+  grammar: { label: 'Ngữ pháp', style: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+  vocabulary: { label: 'Từ vựng', style: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  pronunciation: { label: 'Phát âm', style: 'bg-purple-50 text-purple-700 border-purple-200' },
+};
+
+export function App() {
+  const [activeTab, setActiveTab] = useState<NavigationTab>('dashboard');
+  const [progress, setProgress] = useState<UserProgress>(getProgress());
+
+  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+  const [lessonTrackFilter, setLessonTrackFilter] = useState<Track | 'all'>('all');
+  const [lessonQuizActive, setLessonQuizActive] = useState(false);
+  const [lessonQuizAnswers, setLessonQuizAnswers] = useState<Record<string, unknown>>({});
+  const [lessonQuizSubmitted, setLessonQuizSubmitted] = useState(false);
+
+  const [activePracticeQuestions, setActivePracticeQuestions] = useState<Question[] | null>(null);
+  const [activeExamQuestions, setActiveExamQuestions] = useState<Question[] | null>(null);
+  const [examSessionAnswers, setExamSessionAnswers] = useState<Record<string, unknown>>({});
+  const [examResult, setExamResult] = useState<ExamResult | null>(null);
+  const [examCurrentIndex, setExamCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    setProgress(getProgress());
+  }, []);
+
+  const lessonQuestions = useMemo(() => {
+    if (!selectedLesson) return [];
+    return getQuestionsByIds(QUESTION_BANK, selectedLesson.questionIds);
+  }, [selectedLesson]);
+
+  const weakTopics = useMemo(() => {
+    const stats = progress.questionStats || {};
+    const topicAgg: Record<string, { attempts: number; correct: number }> = {};
+
+    QUESTION_BANK.forEach((q) => {
+      const stat = stats[q.id];
+      if (!stat || stat.attempts === 0) return;
+      q.topicIds.forEach((tid) => {
+        if (!topicAgg[tid]) topicAgg[tid] = { attempts: 0, correct: 0 };
+        topicAgg[tid].attempts += stat.attempts;
+        topicAgg[tid].correct += stat.correctCount;
+      });
+    });
+
+    return Object.entries(topicAgg)
+      .map(([id, { attempts, correct }]) => ({
+        id,
+        name: TOPIC_MAP[id]?.name || id,
+        pct: Math.round((correct / attempts) * 100),
+        attempts,
+      }))
+      .filter((t) => t.attempts >= 2 && t.pct < 70)
+      .sort((a, b) => a.pct - b.pct)
+      .slice(0, 5);
+  }, [progress]);
+
+  const handleCompleteLesson = (lessonId: string) => {
+    const updated = updateLessonComplete(lessonId);
+    setProgress(updated);
+  };
+
+  const handleGenerateExam = (config: ExamConfig, _meta?: { totalAvailable: number; isTruncated: boolean }) => {
+    const result = generateExam(QUESTION_BANK, config);
+    if (result.questions.length === 0) {
+      alert('Không tìm thấy câu hỏi phù hợp với bộ lọc!');
+      return;
+    }
+    setActiveExamQuestions(result.questions);
+    setExamSessionAnswers({});
+    setExamResult(null);
+    setExamCurrentIndex(0);
+  };
+
+  const handleSubmitExam = () => {
+    if (!activeExamQuestions) return;
+
+    let correctCount = 0;
+    const userAnswersMap: Record<string, { answer: unknown; isCorrect: boolean }> = {};
+    const trackScores: Record<Track, number> = { grammar: 0, vocabulary: 0, pronunciation: 0 };
+    const trackTotals: Record<Track, number> = { grammar: 0, vocabulary: 0, pronunciation: 0 };
+    const topicScores: Record<string, { total: number; correct: number }> = {};
+
+    activeExamQuestions.forEach((q) => {
+      const ans = examSessionAnswers[q.id];
+      const evalResult = evaluateAnswer(q, ans);
+      const isCorrect = evalResult.isCorrect;
+
+      if (isCorrect) correctCount++;
+      userAnswersMap[q.id] = { answer: ans, isCorrect };
+      recordQuestionAttempt(q.id, isCorrect);
+
+      trackTotals[q.track]++;
+      if (isCorrect) trackScores[q.track]++;
+
+      q.topicIds.forEach((tid) => {
+        if (!topicScores[tid]) topicScores[tid] = { total: 0, correct: 0 };
+        topicScores[tid].total++;
+        if (isCorrect) topicScores[tid].correct++;
+      });
+    });
+
+    const scorePct = Math.round((correctCount / activeExamQuestions.length) * 100);
+
+    const normalizedTrackScores: Record<Track, number> = {
+      grammar: trackTotals.grammar > 0 ? Math.round((trackScores.grammar / trackTotals.grammar) * 100) : 0,
+      vocabulary: trackTotals.vocabulary > 0 ? Math.round((trackScores.vocabulary / trackTotals.vocabulary) * 100) : 0,
+      pronunciation: trackTotals.pronunciation > 0 ? Math.round((trackScores.pronunciation / trackTotals.pronunciation) * 100) : 0,
+    };
+
+    const result: ExamResult = {
+      id: 'exam_' + Date.now(),
+      timestamp: Date.now(),
+      scorePercentage: scorePct,
+      totalQuestions: activeExamQuestions.length,
+      correctAnswersCount: correctCount,
+      trackScores: normalizedTrackScores,
+      topicScores,
+      userAnswers: userAnswersMap,
+    };
+
+    const updatedProg = recordExamResult(result);
+    setProgress(updatedProg);
+    setExamResult(result);
+  };
+
+  const handleSubmitLessonQuiz = () => {
+    if (!selectedLesson) return;
+    let correct = 0;
+    lessonQuestions.forEach((q) => {
+      const result = evaluateAnswer(q, lessonQuizAnswers[q.id]);
+      if (result.isCorrect) correct++;
+      recordQuestionAttempt(q.id, result.isCorrect);
+    });
+    const score = Math.round((correct / lessonQuestions.length) * 100);
+    const updated = updateLessonComplete(selectedLesson.id, score);
+    setProgress(updated);
+    setLessonQuizSubmitted(true);
+  };
+
+  const resetLessonQuiz = () => {
+    setLessonQuizAnswers({});
+    setLessonQuizSubmitted(false);
+  };
+
+  const switchTab = (tab: NavigationTab) => {
+    setActiveTab(tab);
+    setSelectedLesson(null);
+    setActivePracticeQuestions(null);
+    setActiveExamQuestions(null);
+    setExamResult(null);
+    setLessonQuizActive(false);
+    resetLessonQuiz();
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans antialiased pb-12">
+      <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => switchTab('dashboard')}
+            className="flex items-center space-x-3 cursor-pointer bg-transparent border-0 p-0"
+          >
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md font-black text-lg">
+              E
+            </div>
+            <span className="text-lg font-bold text-slate-900 tracking-tight">EnglishHub</span>
+          </button>
+
+          <nav className="flex items-center space-x-1 sm:space-x-2 overflow-x-auto" aria-label="Main navigation">
+            {[
+              { id: 'dashboard', label: 'Dashboard', icon: '📊' },
+              { id: 'lessons', label: 'Bài học', icon: '📚' },
+              { id: 'cheatsheet', label: 'Tra cứu', icon: '💡' },
+              { id: 'practice', label: 'Luyện tập', icon: '🎯' },
+              { id: 'exam', label: 'Thi thử', icon: '📝' },
+            ].map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => switchTab(item.id as NavigationTab)}
+                aria-current={activeTab === item.id ? 'page' : undefined}
+                className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
+                  activeTab === item.id
+                    ? 'bg-blue-50 text-blue-600 border border-blue-100 shadow-xs'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                <span aria-hidden="true">{item.icon}</span>
+                <span>{item.label}</span>
+              </button>
+            ))}
+          </nav>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        {/* DASHBOARD */}
+        {activeTab === 'dashboard' && (
+          <div className="space-y-8">
+            <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl">
+              <h2 className="text-2xl sm:text-3xl font-extrabold">Chào mừng trở lại! 👋</h2>
+              <p className="mt-2 text-blue-200 text-sm sm:text-base max-w-2xl leading-relaxed">
+                Tiếp tục hành trình chinh phục tiếng Anh với hệ thống bài học và ngân hàng câu hỏi thông minh.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center space-x-4">
+                <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl font-bold">📚</div>
+                <div>
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Bài học hoàn thành</p>
+                  <p className="text-2xl font-black text-slate-900 mt-0.5">
+                    {progress.completedLessonIds.length} <span className="text-sm font-medium text-slate-400">/ {LESSONS_DATA.length}</span>
+                  </p>
+                </div>
+              </div>
+              <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center space-x-4">
+                <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl font-bold">🎯</div>
+                <div>
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Câu hỏi đã làm</p>
+                  <p className="text-2xl font-black text-slate-900 mt-0.5">{Object.keys(progress.questionStats || {}).length}</p>
+                </div>
+              </div>
+              <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center space-x-4">
+                <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl font-bold">📝</div>
+                <div>
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Bài thi đã làm</p>
+                  <p className="text-2xl font-black text-slate-900 mt-0.5">{(progress.examHistory || []).length}</p>
+                </div>
+              </div>
+            </div>
+
+            {weakTopics.length > 0 && (
+              <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+                <h3 className="text-lg font-bold text-slate-900">📉 Chủ đề cần cải thiện</h3>
+                <ul className="space-y-2">
+                  {weakTopics.map((t) => (
+                    <li key={t.id} className="flex items-center justify-between text-sm">
+                      <span className="text-slate-700">{t.name}</span>
+                      <span className="font-bold text-rose-600">{t.pct}%</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {(progress.examHistory || []).length > 0 && (
+              <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+                <h3 className="text-lg font-bold text-slate-900">📝 Bài thi gần đây</h3>
+                <ul className="space-y-2">
+                  {(progress.examHistory || []).slice(0, 3).map((exam) => (
+                    <li key={exam.id} className="flex items-center justify-between text-sm border-b border-slate-50 pb-2 last:border-0">
+                      <span className="text-slate-500">{new Date(exam.timestamp).toLocaleDateString('vi-VN')}</span>
+                      <span className="font-bold text-slate-900">{exam.scorePercentage}% ({exam.correctAnswersCount}/{exam.totalQuestions})</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between space-y-4">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">💡 Tra cứu nhanh Cheatsheet</h3>
+                  <p className="text-sm text-slate-500 mt-1">Xem lại công thức Ngữ pháp, từ vựng trọng tâm và quy tắc phát âm.</p>
+                </div>
+                <button type="button" onClick={() => switchTab('cheatsheet')} className="self-start px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs sm:text-sm transition-all">
+                  Mở Cheatsheet →
+                </button>
+              </div>
+              <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between space-y-4">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">🎯 Tạo bài thi thử</h3>
+                  <p className="text-sm text-slate-500 mt-1">Tùy chỉnh bài thi theo chủ đề, độ khó và dạng câu hỏi bạn mong muốn.</p>
+                </div>
+                <button type="button" onClick={() => switchTab('exam')} className="self-start px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-md transition-all">
+                  Tạo bài test ngay →
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* LESSONS */}
+        {activeTab === 'lessons' && (
+          <div>
+            {!selectedLesson ? (
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-900">Danh sách bài học</h2>
+                    <p className="text-xs text-slate-500">Lựa chọn bài học theo lộ trình lý thuyết & câu hỏi đi kèm.</p>
+                  </div>
+                  <div className="flex items-center space-x-1 overflow-x-auto pb-1 sm:pb-0">
+                    {(['all', 'grammar', 'vocabulary', 'pronunciation'] as const).map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setLessonTrackFilter(t)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize transition-all whitespace-nowrap ${
+                          lessonTrackFilter === t ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        {t === 'all' ? 'Tất cả' : TRACK_BADGES[t]?.label || t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {LESSONS_DATA.filter((l) => lessonTrackFilter === 'all' || l.track === lessonTrackFilter).map((les) => {
+                    const isCompleted = progress.completedLessonIds.includes(les.id);
+                    const trackInfo = TRACK_BADGES[les.track] || { label: les.track, style: 'bg-slate-100 text-slate-700' };
+                    return (
+                      <button
+                        key={les.id}
+                        type="button"
+                        onClick={() => { setSelectedLesson(les); setLessonQuizActive(false); resetLessonQuiz(); }}
+                        className={`group relative bg-white p-6 rounded-2xl border transition-all duration-200 cursor-pointer flex flex-col justify-between space-y-4 hover:shadow-lg hover:-translate-y-0.5 text-left w-full ${
+                          isCompleted ? 'border-emerald-200 bg-emerald-50/10' : 'border-slate-200/80 hover:border-blue-400'
+                        }`}
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <span className={`px-2.5 py-1 rounded-md text-[11px] font-semibold border ${trackInfo.style}`}>{trackInfo.label}</span>
+                            {isCompleted && <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold">✓ Đã xong</span>}
+                          </div>
+                          <h3 className="text-base font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{les.title}</h3>
+                          <p className="text-xs text-slate-500 mt-2 line-clamp-2 leading-relaxed">{les.description}</p>
+                        </div>
+                        <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400 font-medium">
+                          <span>⏱ {les.durationMinutes} phút · {les.questionIds.length} câu hỏi</span>
+                          <span className="text-blue-600 font-semibold">Học ngay →</span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="max-w-4xl mx-auto bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm space-y-6">
+                <button type="button" onClick={() => { setSelectedLesson(null); setLessonQuizActive(false); resetLessonQuiz(); }} className="text-xs sm:text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors">
+                  ← Quay lại danh sách bài học
+                </button>
+
+                <div>
+                  <span className={`px-2.5 py-1 rounded-md text-[11px] font-semibold border uppercase tracking-wider ${TRACK_BADGES[selectedLesson.track]?.style}`}>
+                    {TRACK_BADGES[selectedLesson.track]?.label}
+                  </span>
+                  <h2 className="text-2xl font-black text-slate-900 mt-2">{selectedLesson.title}</h2>
+                  <p className="text-sm text-slate-500 mt-1">{selectedLesson.description}</p>
+                </div>
+
+                <hr className="border-slate-100" />
+
+                {!lessonQuizActive ? (
+                  <>
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-bold text-blue-600 uppercase tracking-wider">1. Lý thuyết</h3>
+                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 text-sm text-slate-700 leading-relaxed">
+                        {selectedLesson.content.theory}
+                      </div>
+                    </div>
+
+                    {selectedLesson.content.vocabularyList && (
+                      <div className="space-y-2">
+                        <h3 className="text-sm font-bold text-emerald-600 uppercase tracking-wider">2. Từ vựng</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {selectedLesson.content.vocabularyList.map((v) => (
+                            <div key={v.word} className="p-3 bg-emerald-50/50 border border-emerald-200/60 rounded-xl text-sm">
+                              <span className="font-bold text-slate-900">{v.word}</span>
+                              {v.phonetic && <span className="text-slate-400 ml-2 text-xs">{v.phonetic}</span>}
+                              <p className="text-slate-600 mt-0.5">{v.meaning}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedLesson.content.examples && (
+                      <div className="space-y-2">
+                        <h3 className="text-sm font-bold text-amber-600 uppercase tracking-wider">
+                          {selectedLesson.content.vocabularyList ? '3. Ví dụ' : '2. Ví dụ minh họa'}
+                        </h3>
+                        <div className="space-y-2">
+                          {selectedLesson.content.examples.map((ex, i) => (
+                            <div key={i} className="p-3 bg-amber-50/50 border border-amber-200/60 rounded-xl text-sm text-slate-800">• {ex}</div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="pt-4 flex flex-wrap gap-3 justify-end">
+                      {lessonQuestions.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => { setLessonQuizActive(true); resetLessonQuiz(); }}
+                          className="px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-all shadow-sm"
+                        >
+                          Làm bài kiểm tra ({lessonQuestions.length} câu) →
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleCompleteLesson(selectedLesson.id)}
+                        className={`px-6 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all shadow-sm ${
+                          progress.completedLessonIds.includes(selectedLesson.id)
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                            : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                        }`}
+                      >
+                        {progress.completedLessonIds.includes(selectedLesson.id) ? '✓ Đã hoàn thành' : 'Đánh dấu đã học xong ✓'}
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="space-y-6">
+                    <h3 className="text-sm font-bold text-blue-600 uppercase tracking-wider">Bài kiểm tra bài học</h3>
+
+                    {!lessonQuizSubmitted ? (
+                      <>
+                        {lessonQuestions.map((q, idx) => (
+                          <div key={q.id} className="space-y-2">
+                            <span className="text-xs font-bold text-slate-500">Câu {idx + 1}</span>
+                            <QuestionRenderer
+                              question={q}
+                              userAnswer={lessonQuizAnswers[q.id]}
+                              onAnswerChange={(val) => setLessonQuizAnswers((prev) => ({ ...prev, [q.id]: val }))}
+                            />
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={handleSubmitLessonQuiz}
+                          className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md"
+                        >
+                          Nộp bài
+                        </button>
+                      </>
+                    ) : (
+                      <div className="text-center space-y-4">
+                        {(() => {
+                          let correct = 0;
+                          lessonQuestions.forEach((q) => {
+                            if (evaluateAnswer(q, lessonQuizAnswers[q.id]).isCorrect) correct++;
+                          });
+                          const pct = Math.round((correct / lessonQuestions.length) * 100);
+                          return (
+                            <>
+                              <div className="w-20 h-20 mx-auto bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-2xl font-black">{pct}%</div>
+                              <p className="text-sm text-slate-600">Đúng {correct}/{lessonQuestions.length} câu</p>
+                            </>
+                          );
+                        })()}
+                        <div className="space-y-3">
+                          {lessonQuestions.map((q, idx) => {
+                            const result = evaluateAnswer(q, lessonQuizAnswers[q.id]);
+                            return (
+                              <QuestionRenderer
+                                key={q.id}
+                                question={q}
+                                userAnswer={lessonQuizAnswers[q.id]}
+                                onAnswerChange={() => {}}
+                                showFeedback
+                                disabled
+                              />
+                            );
+                          })}
+                        </div>
+                        <button type="button" onClick={() => { setLessonQuizActive(false); resetLessonQuiz(); }} className="px-6 py-2.5 rounded-xl bg-slate-900 text-white font-semibold text-sm">
+                          Quay lại bài học
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'cheatsheet' && <CheatsheetView />}
+
+        {activeTab === 'practice' && (
+          <div>
+            {!activePracticeQuestions ? (
+              <PracticeConfig onStart={setActivePracticeQuestions} />
+            ) : (
+              <PracticeSession
+                questions={activePracticeQuestions}
+                onFinish={() => setActivePracticeQuestions(null)}
+              />
+            )}
+          </div>
+        )}
+
+        {activeTab === 'exam' && (
+          <div>
+            {!activeExamQuestions ? (
+              <ExamBuilder onGenerate={handleGenerateExam} />
+            ) : examResult ? (
+              <ExamResultView
+                result={examResult}
+                questions={activeExamQuestions}
+                onNewTest={() => { setActiveExamQuestions(null); setExamResult(null); }}
+                onBackToDashboard={() => switchTab('dashboard')}
+              />
+            ) : (
+              <div className="max-w-3xl mx-auto space-y-6">
+                <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                  <h3 className="font-bold text-slate-900 text-sm sm:text-base">Đang làm bài thi</h3>
+                  <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold">
+                    Câu {examCurrentIndex + 1} / {activeExamQuestions.length}
+                  </span>
+                </div>
+
+                <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-indigo-600 rounded-full transition-all"
+                    style={{ width: `${((examCurrentIndex + 1) / activeExamQuestions.length) * 100}%` }}
+                  />
+                </div>
+
+                <QuestionRenderer
+                  question={activeExamQuestions[examCurrentIndex]}
+                  userAnswer={examSessionAnswers[activeExamQuestions[examCurrentIndex].id]}
+                  onAnswerChange={(val) =>
+                    setExamSessionAnswers((prev) => ({ ...prev, [activeExamQuestions[examCurrentIndex].id]: val }))
+                  }
+                />
+
+                <div className="flex justify-between gap-3">
+                  <button
+                    type="button"
+                    disabled={examCurrentIndex === 0}
+                    onClick={() => setExamCurrentIndex((i) => i - 1)}
+                    className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-semibold text-sm disabled:opacity-40"
+                  >
+                    ← Trước
+                  </button>
+
+                  {examCurrentIndex < activeExamQuestions.length - 1 ? (
+                    <button
+                      type="button"
+                      onClick={() => setExamCurrentIndex((i) => i + 1)}
+                      className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm"
+                    >
+                      Tiếp →
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleSubmitExam}
+                      className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md"
+                    >
+                      Nộp bài thi 🎯
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
+</file>
+
+</files>

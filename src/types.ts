@@ -67,6 +67,7 @@ export interface ListeningQuestion extends BaseQuestion {
 }
 
 export interface SpeakingQuestion extends BaseQuestion {
+    id: string;
     type: 'speaking';
     promptText: string;
     targetPhonetics?: string;

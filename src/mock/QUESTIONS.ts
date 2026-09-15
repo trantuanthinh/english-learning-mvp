@@ -67,7 +67,7 @@ export const QUESTIONS: Question[] = [
     difficulty: "beginner",
     type: "speaking",
     points: 2,
-    promptText: "Say the word: relative",
+    promptText: "relative",
     targetPhonetics: "/ˈrelətɪv/"
   },
   {
@@ -135,7 +135,7 @@ export const QUESTIONS: Question[] = [
     difficulty: "beginner",
     type: "speaking",
     points: 2,
-    promptText: "Say the word: sibling",
+    promptText: "sibling",
     targetPhonetics: "/ˈsɪblɪŋ/"
   },
   {
@@ -221,7 +221,7 @@ export const QUESTIONS: Question[] = [
     difficulty: "beginner",
     type: "speaking",
     points: 2,
-    promptText: "Say the word: spouse",
+    promptText: "spouse",
     targetPhonetics: "/spaʊs/"
   }
 ];

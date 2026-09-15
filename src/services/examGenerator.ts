@@ -4,7 +4,7 @@ export interface ExamConfig {
     trackIds?: Track[];
     topicIds?: string[];
     questionTypes?: QuestionType[];
-    difficulty?: Difficulty | 'mixed';
+    difficulty?: Difficulty | "mixed";
     questionCount: number;
 }
 
@@ -23,32 +23,19 @@ export function shuffle<T>(array: T[]): T[] {
     return result;
 }
 
-export function generateExam(
-    bank: Question[],
-    config: ExamConfig
-): ExamGenerationResult {
+export function generateExam(bank: Question[], config: ExamConfig): ExamGenerationResult {
     // 1. Filter bank by requirements
     let pool = bank.filter((q) => {
         if (config.trackIds?.length && !config.trackIds.includes(q.track)) {
             return false;
         }
-        if (
-            config.topicIds?.length &&
-            !q.topicIds.some((t) => config.topicIds!.includes(t))
-        ) {
+        if (config.topicIds?.length && !q.topicIds.some((t) => config.topicIds!.includes(t))) {
             return false;
         }
-        if (
-            config.questionTypes?.length &&
-            !config.questionTypes.includes(q.type)
-        ) {
+        if (config.questionTypes?.length && !config.questionTypes.includes(q.type)) {
             return false;
         }
-        if (
-            config.difficulty &&
-            config.difficulty !== 'mixed' &&
-            q.difficulty !== config.difficulty
-        ) {
+        if (config.difficulty && config.difficulty !== "mixed" && q.difficulty !== config.difficulty) {
             return false;
         }
         return true;
@@ -86,10 +73,7 @@ export function generateExam(
     const selectedIds = new Set(selected.map((q) => q.id));
     const remainingPool = shuffle(pool.filter((q) => !selectedIds.has(q.id)));
 
-    while (
-        selected.length < config.questionCount &&
-        remainingPool.length > 0
-    ) {
+    while (selected.length < config.questionCount && remainingPool.length > 0) {
         selected.push(remainingPool.pop()!);
     }
 

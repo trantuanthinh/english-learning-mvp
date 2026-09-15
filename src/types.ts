@@ -145,18 +145,30 @@ export interface ExamResult {
     topicScores: Record<string, {total: number; correct: number;}>;
     userAnswers: Record<string, {answer: any; isCorrect: boolean;}>;
 }
+export interface QuestionAttempt {
+    questionId: string;
+    answer: unknown;
+    isCorrect: boolean;
+    timestamp: number;
+}
+
+export interface FlashcardProgress {
+    cardId: string;
+    state: "new" | "learning" | "known" | "hard";
+    lastReviewedAt: number;
+}
 
 export interface UserProgress {
     version: 1;
     completedLessonIds: string[];
-    quizScores: Record<string, number>; // Deprecated / Backwards compatibility
-    questionStats: Record<
-        string,
-        {
-            attempts: number;
-            correctCount: number;
-            lastAttemptTimestamp: number;
-        }
-    >;
+    quizScores: Record<string, number>;
+    questionStats: Record<string, {
+        attempts: number;
+        correctCount: number;
+        lastAttemptTimestamp: number;
+    }>;
     examHistory: ExamResult[];
+    // thêm optional, không đổi version
+    questionAttempts?: QuestionAttempt[];
+    flashcardProgress?: Record<string, FlashcardProgress>;
 }

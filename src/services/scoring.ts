@@ -7,41 +7,34 @@ export interface EvaluationResult {
 }
 
 export function normalizeText(input: string): string {
-    return input.trim().toLowerCase().replace(/\s+/g, ' ');
+    return input.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-export function evaluateAnswer(
-    question: Question,
-    userAnswer: any
-): EvaluationResult {
+export function evaluateAnswer(question: Question, userAnswer: any): EvaluationResult {
     if (userAnswer === undefined || userAnswer === null) {
         return {isCorrect: false, scoreFraction: 0};
     }
 
     switch (question.type) {
-        case 'multiple-choice':
-        case 'listening': {
+        case "multiple-choice":
+        case "listening": {
             const isCorrect = userAnswer === question.correctIndex;
             return {isCorrect, scoreFraction: isCorrect ? 1 : 0};
         }
 
-        case 'fill-blank': {
+        case "fill-blank": {
             const userText = normalizeText(String(userAnswer));
-            const isCorrect = question.acceptedAnswers.some(
-                (ans) => normalizeText(ans) === userText
-            );
+            const isCorrect = question.acceptedAnswers.some((ans) => normalizeText(ans) === userText);
             return {isCorrect, scoreFraction: isCorrect ? 1 : 0};
         }
 
-        case 'error-correction': {
+        case "error-correction": {
             // Expecting userAnswer = { segmentId: string; correction: string }
             const {segmentId, correction} = userAnswer || {};
             const isSegmentCorrect = segmentId === question.correctSegmentId;
 
-            const userCorrection = normalizeText(correction || '');
-            const isCorrectionCorrect = question.acceptedCorrections.some(
-                (ans) => normalizeText(ans) === userCorrection
-            );
+            const userCorrection = normalizeText(correction || "");
+            const isCorrectionCorrect = question.acceptedCorrections.some((ans) => normalizeText(ans) === userCorrection);
 
             const isCorrect = isSegmentCorrect && isCorrectionCorrect;
             let scoreFraction = 0;
@@ -52,14 +45,14 @@ export function evaluateAnswer(
                 isCorrect,
                 scoreFraction,
                 feedback: !isSegmentCorrect
-                    ? 'Incorrect error location selected.'
+                    ? "Incorrect error location selected."
                     : !isCorrectionCorrect
-                        ? 'Error location identified, but correction was incorrect.'
-                        : 'Perfect!',
+                        ? "Error location identified, but correction was incorrect."
+                        : "Perfect!",
             };
         }
 
-        case 'speaking': {
+        case "speaking": {
             // Practice mode: completes upon audio playback / user confirmation
             const isCompleted = Boolean(userAnswer?.completed);
             return {isCorrect: isCompleted, scoreFraction: isCompleted ? 1 : 0};

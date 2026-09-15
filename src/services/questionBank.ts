@@ -1,11 +1,11 @@
-import type {Difficulty, Question, QuestionType, Track} from '../types';
+import type {Difficulty, Question, QuestionType, Track} from "../types";
 
 export interface QuestionFilter {
     trackIds?: Track[];
     topicIds?: string[];
     lessonIds?: string[];
     questionTypes?: QuestionType[];
-    difficulty?: Difficulty | 'mixed';
+    difficulty?: Difficulty | "mixed";
     tags?: string[];
 }
 
@@ -14,9 +14,7 @@ export function getQuestionById(bank: Question[], id: string): Question | undefi
 }
 
 export function getQuestionsByIds(bank: Question[], ids: string[]): Question[] {
-    return ids
-        .map((id) => getQuestionById(bank, id))
-        .filter((q): q is Question => q !== undefined);
+    return ids.map((id) => getQuestionById(bank, id)).filter((q): q is Question => q !== undefined);
 }
 
 export function getQuestionsByLesson(bank: Question[], lessonId: string): Question[] {
@@ -29,7 +27,7 @@ export function filterQuestions(bank: Question[], filter: QuestionFilter): Quest
         if (filter.topicIds?.length && !q.topicIds.some((t) => filter.topicIds!.includes(t))) return false;
         if (filter.lessonIds?.length && !q.lessonIds?.some((l) => filter.lessonIds!.includes(l))) return false;
         if (filter.questionTypes?.length && !filter.questionTypes.includes(q.type)) return false;
-        if (filter.difficulty && filter.difficulty !== 'mixed' && q.difficulty !== filter.difficulty) return false;
+        if (filter.difficulty && filter.difficulty !== "mixed" && q.difficulty !== filter.difficulty) return false;
         if (filter.tags?.length && !filter.tags.some((tag) => q.tags?.includes(tag))) return false;
         return true;
     });

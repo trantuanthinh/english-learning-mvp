@@ -1,8 +1,8 @@
-import React, {useState} from 'react';
-import {QuestionRenderer} from '../../components/quiz/QuestionRenderer';
-import {evaluateAnswer} from '../../services/scoring';
-import {recordQuestionAttempt} from '../../storage';
-import type {Question} from '../../types';
+import React, {useState} from "react";
+import {QuestionRenderer} from "../../components/quiz/QuestionRenderer";
+import {evaluateAnswer} from "../../services/scoring";
+import {recordQuestionAttempt} from "../../storage";
+import type {Question} from "../../types";
 
 interface PracticeProps {
     questions: Question[];
@@ -12,16 +12,18 @@ interface PracticeProps {
 function hasValidAnswer(question: Question, answer: unknown): boolean {
     if (answer === undefined || answer === null) return false;
     switch (question.type) {
-        case 'multiple-choice':
-        case 'listening':
-            return typeof answer === 'number';
-        case 'fill-blank':
+        case "multiple-choice":
+        case "listening":
+            return typeof answer === "number";
+        case "fill-blank":
             return String(answer).trim().length > 0;
-        case 'error-correction':
-            return Boolean((answer as {segmentId?: string; correction?: string})?.segmentId) &&
-                String((answer as {correction?: string})?.correction || '').trim().length > 0;
-        case 'speaking':
-            return Boolean((answer as {completed?: boolean})?.completed);
+        case "error-correction":
+            return (
+                Boolean((answer as {segmentId?: string; correction?: string;})?.segmentId) &&
+                String((answer as {correction?: string;})?.correction || "").trim().length > 0
+            );
+        case "speaking":
+            return Boolean((answer as {completed?: boolean;})?.completed);
         default:
             return false;
     }
@@ -39,7 +41,7 @@ export const PracticeSession: React.FC<PracticeProps> = ({questions, onFinish}) 
 
     const handleCheck = () => {
         const result = evaluateAnswer(currentQuestion, userAnswer);
-        recordQuestionAttempt(currentQuestion.id, result.isCorrect);
+        recordQuestionAttempt(currentQuestion.id, userAnswer, result.isCorrect);
         if (result.isCorrect) setCorrectCount((c) => c + 1);
         setIsChecked(true);
     };
@@ -68,8 +70,7 @@ export const PracticeSession: React.FC<PracticeProps> = ({questions, onFinish}) 
                 <button
                     type="button"
                     onClick={onFinish}
-                    className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-all"
-                >
+                    className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-all">
                     Luyện tập tiếp
                 </button>
             </div>
@@ -79,7 +80,9 @@ export const PracticeSession: React.FC<PracticeProps> = ({questions, onFinish}) 
     return (
         <div className="max-w-2xl mx-auto space-y-6">
             <div className="flex items-center justify-between text-sm text-slate-500 font-medium">
-                <span>Câu {currentIndex + 1} / {questions.length}</span>
+                <span>
+                    Câu {currentIndex + 1} / {questions.length}
+                </span>
                 <span className="text-blue-600 font-semibold">Chế độ Luyện tập</span>
             </div>
 
@@ -101,15 +104,11 @@ export const PracticeSession: React.FC<PracticeProps> = ({questions, onFinish}) 
             {isChecked && evalResult && (
                 <div
                     role="status"
-                    className={`p-4 rounded-xl font-medium border ${
-                        evalResult.isCorrect
-                            ? 'bg-emerald-50 text-emerald-900 border-emerald-200'
-                            : 'bg-rose-50 text-rose-900 border-rose-200'
-                    }`}
-                >
-                    {evalResult.isCorrect
-                        ? '✓ Chính xác!'
-                        : evalResult.feedback || '✗ Chưa đúng. Xem giải thích phía trên.'}
+                    className={`p-4 rounded-xl font-medium border ${evalResult.isCorrect
+                        ? "bg-emerald-50 text-emerald-900 border-emerald-200"
+                        : "bg-rose-50 text-rose-900 border-rose-200"
+                        }`}>
+                    {evalResult.isCorrect ? "✓ Chính xác!" : evalResult.feedback || "✗ Chưa đúng. Xem giải thích phía trên."}
                 </div>
             )}
 
@@ -119,17 +118,15 @@ export const PracticeSession: React.FC<PracticeProps> = ({questions, onFinish}) 
                         type="button"
                         disabled={!hasValidAnswer(currentQuestion, userAnswer)}
                         onClick={handleCheck}
-                        className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
+                        className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                         Kiểm tra
                     </button>
                 ) : (
                     <button
                         type="button"
                         onClick={handleNext}
-                        className="px-6 py-2.5 rounded-xl bg-slate-900 text-white font-semibold transition-all"
-                    >
-                        {currentIndex < questions.length - 1 ? 'Câu tiếp theo →' : 'Hoàn thành'}
+                        className="px-6 py-2.5 rounded-xl bg-slate-900 text-white font-semibold transition-all">
+                        {currentIndex < questions.length - 1 ? "Câu tiếp theo →" : "Hoàn thành"}
                     </button>
                 )}
             </div>

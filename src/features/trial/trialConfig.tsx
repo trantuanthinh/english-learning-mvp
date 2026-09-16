@@ -9,15 +9,6 @@ export const TRIAL_LIMITS: Record<TrialAction, number> = {
     review: 2,
 };
 
-export const TRIAL_ACTION_LABELS: Record<TrialAction, string> = {
-    lesson: 'bài học',
-    quiz: 'bài kiểm tra bài học',
-    exam: 'bài thi thử',
-    practice: 'phiên luyện tập',
-    flashcard: 'phiên thẻ từ vựng',
-    review: 'phiên ôn lỗi sai',
-};
-
 export const CONTACT = {
     name: 'Trần Tuấn Thịnh',
     role: 'Full-stack Developer',

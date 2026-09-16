@@ -6,7 +6,7 @@ import {ExamBuilder} from "./features/exam/ExamBuilder";
 import {ExamResultView} from "./features/exam/ExamResultView";
 import {PracticeConfig} from "./features/practice/PracticeConfig";
 import {PracticeSession} from "./features/practice/PracticeSession";
-import {totalRemaining, TRIAL_LIMITS} from "./features/trial/trialConfig";
+import {TRIAL_LIMITS} from "./features/trial/trialConfig";
 import {TrialLimitModal} from "./features/trial/TrialLimitModal";
 import {type ExamConfig, generateExam} from "./services/examGenerator";
 import {getQuestionsByIds} from "./services/questionBank";
@@ -22,8 +22,8 @@ import {
 } from "./storage";
 import type {ExamResult, Lesson, Question, Track, TrialAction, UserProgress} from "./types";
 
-type NavigationTab = "dashboard" | "lessons" | "cheatsheet" | "practice" | "review" | "flashcards" | "exam";
-type FlashcardState = "new" | "learning" | "known" | "hard";
+export type NavigationTab = "dashboard" | "lessons" | "cheatsheet" | "practice" | "review" | "flashcards" | "exam";
+export type FlashcardState = "new" | "learning" | "known" | "hard";
 
 interface VocabularyCard {
     id: string;
@@ -44,7 +44,7 @@ interface TabTrialProps {
     onTryConsume: (action: TrialAction) => boolean;
 }
 
-const TRACK_BADGES: Record<string, {label: string; style: string;}> = {
+export const TRACK_BADGES: Record<string, {label: string; style: string;}> = {
     grammar: {label: "Ngữ pháp", style: "bg-indigo-50 text-indigo-700 border-indigo-200"},
     vocabulary: {label: "Từ vựng", style: "bg-emerald-50 text-emerald-700 border-emerald-200"},
     pronunciation: {label: "Phát âm", style: "bg-purple-50 text-purple-700 border-purple-200"},
@@ -81,7 +81,7 @@ function buildVocabularyCards(): VocabularyCard[] {
     return cards;
 }
 
-function formatPreviousAnswer(question: Question, answer: unknown): string {
+export function formatPreviousAnswer(question: Question, answer: unknown): string {
     if (answer === undefined || answer === null) return "(chưa trả lời)";
     switch (question.type) {
         case "multiple-choice":
@@ -116,7 +116,7 @@ function DashboardTab({
 }) {
     return (
         <div className="space-y-8">
-            <div className="p-6 text-white shadow-xl bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 rounded-3xl sm:p-8">
+            <div className="p-6 text-white shadow-xl bg-linear-to-r from-blue-900 via-indigo-900 to-slate-900 rounded-3xl sm:p-8">
                 <h2 className="text-2xl font-extrabold sm:text-3xl">Chào mừng trở lại! 👋</h2>
                 <p className="max-w-2xl mt-2 text-sm leading-relaxed text-blue-200 sm:text-base">
                     Tiếp tục hành trình chinh phục tiếng Anh với hệ thống bài học và ngân hàng câu hỏi thông minh.
@@ -762,7 +762,7 @@ function ReviewTab({
 
             <div className="p-4 text-sm space-y-1 border rounded-2xl bg-amber-50 border-amber-200 text-amber-900">
                 <p className="font-semibold">Lần trước bạn trả lời (sai):</p>
-                <p className="font-mono text-xs break-words sm:text-sm">
+                <p className="font-mono text-xs wrap-break-word sm:text-sm">
                     {formatPreviousAnswer(currentQuestion, currentEntry.previousAnswer)}
                 </p>
             </div>
@@ -913,7 +913,7 @@ function FlashcardTab({
             <button
                 type="button"
                 onClick={() => setRevealed((r) => !r)}
-                className="w-full min-h-[280px] flex flex-col items-center justify-center p-8 text-center bg-white border-2 shadow-md rounded-3xl border-slate-200 hover:border-blue-400 transition-all">
+                className="w-full min-h-70 flex flex-col items-center justify-center p-8 text-center bg-white border-2 shadow-md rounded-3xl border-slate-200 hover:border-blue-400 transition-all">
                 {!revealed ? (
                     <>
                         <p className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
@@ -1176,13 +1176,6 @@ export function App() {
             .slice(0, 5);
     }, [progress]);
 
-    const trialRemaining = useMemo(() => {
-        const usage = progress.trialUsage ?? {
-            lesson: 0, quiz: 0, exam: 0, practice: 0, flashcard: 0, review: 0,
-        };
-        return totalRemaining(usage);
-    }, [progress]);
-
     const refreshProgress = () => setProgress(getProgress());
 
     const tryConsume = (action: TrialAction): boolean => {
@@ -1209,7 +1202,7 @@ export function App() {
                         type="button"
                         onClick={() => switchTab("dashboard")}
                         className="flex items-center p-0 space-x-3 bg-transparent border-0 cursor-pointer">
-                        <div className="flex items-center justify-center text-lg font-black text-white shadow-md w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600">
+                        <div className="flex items-center justify-center text-lg font-black text-white shadow-md w-9 h-9 rounded-xl bg-linear-to-tr from-blue-600 to-indigo-600">
                             E
                         </div>
                         <span className="text-lg font-bold tracking-tight text-slate-900">EnglishHub</span>

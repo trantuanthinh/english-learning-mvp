@@ -53,8 +53,8 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
             {question.type === 'error-correction' && (
                 <ErrorCorrectionRenderer
                     question={question}
-                    value={userAnswer}
-                    onChange={onAnswerChange}
+                    userAnswer={userAnswer}
+                    onAnswerChange={onAnswerChange}
                     disabled={disabled}
                 />
             )}

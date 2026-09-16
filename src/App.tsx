@@ -60,24 +60,27 @@ const NAV_ITEMS: {id: NavigationTab; label: string; icon: string;}[] = [
     {id: "exam", label: "Thi thử", icon: "📝"},
 ];
 
-function buildVocabularyCards(): VocabularyCard[] {
+export function buildVocabularyCards(): VocabularyCard[] {
     const cards: VocabularyCard[] = [];
     const seen = new Set<string>();
+
     LESSONS_DATA.forEach((lesson) => {
         lesson.content.vocabularyList?.forEach((v) => {
             const key = v.word.toLowerCase().trim();
             if (seen.has(key)) return;
             seen.add(key);
+
             cards.push({
                 id: `vocab-${key}`,
                 word: v.word,
                 meaning: v.meaning,
                 phonetic: v.phonetic,
-                example: lesson.content.examples?.[0],
+                example: v.example ?? "Not found!",
                 lessonId: lesson.id,
             });
         });
     });
+
     return cards;
 }
 
@@ -937,9 +940,13 @@ function FlashcardTab({
                         <p className="mt-6 text-lg font-semibold text-blue-600 sm:text-xl">
                             = {currentCard.meaning}
                         </p>
-                        {currentCard.example && (
+                        {currentCard.example ? (
                             <p className="mt-6 text-sm italic text-slate-500 sm:text-base">
                                 “{currentCard.example}”
+                            </p>
+                        ) : (
+                            <p className="mt-6 text-xs italic text-slate-300">
+                                (Chưa có ví dụ cho từ này)
                             </p>
                         )}
                     </>
@@ -963,6 +970,7 @@ function FlashcardTab({
         </div>
     );
 }
+
 function PracticeTab({onTryConsume}: TabTrialProps) {
     const [activePracticeQuestions, setActivePracticeQuestions] = useState<Question[] | null>(null);
 

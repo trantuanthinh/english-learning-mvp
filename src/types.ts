@@ -75,6 +75,7 @@ export interface VocabularyItem {
     word: string;
     meaning: string;
     phonetic?: string;
+    example?: string;
 }
 
 export interface Lesson {

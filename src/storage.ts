@@ -1,18 +1,18 @@
-// src/storage.ts
-
 import type {
     ExamResult,
     FlashcardProgress,
     QuestionAttempt,
+    TrialAction,
+    TrialUsage,
     UserProgress,
 } from "./types";
 
 const STORAGE_KEY = "ENGLISH_LEARNING_PROGRESS_V1";
 const MAX_ATTEMPTS = 200;
 
-/* ------------------------------------------------------------------ */
-/* Default progress                                                    */
-/* ------------------------------------------------------------------ */
+function defaultTrialUsage(): TrialUsage {
+    return {lesson: 0, quiz: 0, exam: 0, practice: 0, flashcard: 0, review: 0};
+}
 
 function createDefaultProgress(): UserProgress {
     return {
@@ -23,12 +23,9 @@ function createDefaultProgress(): UserProgress {
         examHistory: [],
         questionAttempts: [],
         flashcardProgress: {},
+        trialUsage: defaultTrialUsage(),
     };
 }
-
-/* ------------------------------------------------------------------ */
-/* Read / write                                                        */
-/* ------------------------------------------------------------------ */
 
 export function getProgress(): UserProgress {
     try {
@@ -37,7 +34,6 @@ export function getProgress(): UserProgress {
 
         const parsed = JSON.parse(raw) as Partial<UserProgress>;
 
-        // Ensure backward compatibility and defaults for new optional fields
         return {
             version: 1,
             completedLessonIds: parsed.completedLessonIds ?? [],
@@ -46,6 +42,7 @@ export function getProgress(): UserProgress {
             examHistory: parsed.examHistory ?? [],
             questionAttempts: parsed.questionAttempts ?? [],
             flashcardProgress: parsed.flashcardProgress ?? {},
+            trialUsage: parsed.trialUsage ?? defaultTrialUsage(),
         };
     } catch (error) {
         console.error("Failed to read progress from localStorage", error);
@@ -61,32 +58,28 @@ export function saveProgress(progress: UserProgress): void {
     }
 }
 
-/* ------------------------------------------------------------------ */
-/* Lesson completion                                                   */
-/* ------------------------------------------------------------------ */
-
-export function updateLessonComplete(lessonId: string): void {
+export function updateLessonComplete(lessonId: string, score?: number): UserProgress {
     const progress = getProgress();
 
     if (!progress.completedLessonIds.includes(lessonId)) {
         progress.completedLessonIds.push(lessonId);
     }
 
-    saveProgress(progress);
-}
+    if (typeof score === "number") {
+        progress.quizScores[lessonId] = score;
+    }
 
-/* ------------------------------------------------------------------ */
-/* Question attempt tracking                                           */
-/* ------------------------------------------------------------------ */
+    saveProgress(progress);
+    return progress;
+}
 
 export function recordQuestionAttempt(
     questionId: string,
     answer: unknown,
     isCorrect: boolean
-): void {
+): UserProgress {
     const progress = getProgress();
 
-    // 1. Update aggregate stats (existing behaviour)
     const stat = progress.questionStats[questionId] ?? {
         attempts: 0,
         correctCount: 0,
@@ -99,67 +92,63 @@ export function recordQuestionAttempt(
 
     progress.questionStats[questionId] = stat;
 
-    // 2. Store recent attempt history (new)
     const attempts = progress.questionAttempts ?? [];
-
     const newAttempt: QuestionAttempt = {
         questionId,
         answer,
         isCorrect,
         timestamp: Date.now(),
     };
-
     attempts.push(newAttempt);
-
-    // Keep only the most recent MAX_ATTEMPTS
     progress.questionAttempts = attempts.slice(-MAX_ATTEMPTS);
 
     saveProgress(progress);
+    return progress;
 }
 
-/* ------------------------------------------------------------------ */
-/* Exam results                                                        */
-/* ------------------------------------------------------------------ */
-
-export function recordExamResult(result: ExamResult): void {
+export function recordExamResult(result: ExamResult): UserProgress {
     const progress = getProgress();
-
     progress.examHistory.push(result);
-
-    // Optional: limit exam history length if desired
-    // if (progress.examHistory.length > 50) {
-    //   progress.examHistory = progress.examHistory.slice(-50);
-    // }
-
     saveProgress(progress);
+    return progress;
 }
-
-/* ------------------------------------------------------------------ */
-/* Flashcard progress                                                  */
-/* ------------------------------------------------------------------ */
 
 export function updateFlashcardProgress(
     cardId: string,
     state: FlashcardProgress["state"]
-): void {
+): UserProgress {
     const progress = getProgress();
-
     const flashcardProgress = progress.flashcardProgress ?? {};
-
     flashcardProgress[cardId] = {
         cardId,
         state,
         lastReviewedAt: Date.now(),
     };
-
     progress.flashcardProgress = flashcardProgress;
-
     saveProgress(progress);
+    return progress;
 }
 
-/* ------------------------------------------------------------------ */
-/* Utility (optional)                                                  */
-/* ------------------------------------------------------------------ */
+export function getTrialUsage(): TrialUsage {
+    const p = getProgress();
+    return p.trialUsage ?? defaultTrialUsage();
+}
+
+export function recordTrialUse(action: TrialAction): UserProgress {
+    const progress = getProgress();
+    const usage = progress.trialUsage ?? defaultTrialUsage();
+    usage[action] = (usage[action] ?? 0) + 1;
+    progress.trialUsage = usage;
+    saveProgress(progress);
+    return progress;
+}
+
+export function resetTrialUsage(): UserProgress {
+    const progress = getProgress();
+    progress.trialUsage = defaultTrialUsage();
+    saveProgress(progress);
+    return progress;
+}
 
 export function resetProgress(): void {
     localStorage.removeItem(STORAGE_KEY);

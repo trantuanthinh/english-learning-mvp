@@ -156,15 +156,24 @@ export interface UserProgress {
     version: 1;
     completedLessonIds: string[];
     quizScores: Record<string, number>;
-    questionStats: Record<
-        string,
-        {
-            attempts: number;
-            correctCount: number;
-            lastAttemptTimestamp: number;
-        }
-    >;
+    questionStats: Record<string, {
+        attempts: number;
+        correctCount: number;
+        lastAttemptTimestamp: number;
+    }>;
     examHistory: ExamResult[];
     questionAttempts?: QuestionAttempt[];
     flashcardProgress?: Record<string, FlashcardProgress>;
+    trialUsage?: TrialUsage;
+}
+
+export type TrialAction = "lesson" | "quiz" | "exam" | "practice" | "flashcard" | "review";
+
+export interface TrialUsage {
+    lesson: number;
+    quiz: number;
+    exam: number;
+    practice: number;
+    flashcard: number;
+    review: number;
 }

@@ -1,82 +1,102 @@
-// src/components/quiz/renderers/ErrorCorrectionRenderer.tsx
 import React from 'react';
 import type {ErrorCorrectionQuestion} from '../../../types';
 
 interface Props {
     question: ErrorCorrectionQuestion;
-    value?: {segmentId: string; correction: string;};
-    onChange: (val: {segmentId: string; correction: string;}) => void;
+    userAnswer: unknown;
+    onAnswerChange: (answer: {segmentId: string; correction: string;}) => void;
+    showFeedback?: boolean;
     disabled?: boolean;
 }
 
 export const ErrorCorrectionRenderer: React.FC<Props> = ({
     question,
-    value = {segmentId: '', correction: ''},
-    onChange,
-    disabled,
+    userAnswer,
+    onAnswerChange,
+    showFeedback = false,
+    disabled = false,
 }) => {
+    const answer =
+        userAnswer && typeof userAnswer === 'object'
+            ? (userAnswer as {segmentId?: string; correction?: string;})
+            : undefined;
+
+    const selectedSegmentId = answer?.segmentId ?? '';
+    const correction = answer?.correction ?? '';
+
+    const isCorrectSegment = selectedSegmentId === question.correctSegmentId;
+    const isCorrectCorrection =
+        isCorrectSegment &&
+        question.acceptedCorrections.some(
+            (a) => a.trim().toLowerCase() === correction.trim().toLowerCase(),
+        );
+
     const handleSelectSegment = (segmentId: string) => {
         if (disabled) return;
-        onChange({...value, segmentId});
+        onAnswerChange({segmentId, correction});
     };
 
-    const handleCorrectionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        onChange({...value, correction: e.target.value});
+    const handleCorrectionChange = (value: string) => {
+        if (disabled) return;
+        onAnswerChange({segmentId: selectedSegmentId, correction: value});
     };
 
     return (
-        <div className="space-y-6">
-            <p className="text-zinc-900 dark:text-zinc-100 font-medium">
+        <div className="space-y-4">
+            <p className="text-sm font-semibold text-slate-700">
                 {question.prompt}
             </p>
 
-            {/* Segment Selector */}
-            <div className="flex flex-wrap items-center gap-2 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-200 dark:border-zinc-700">
+            <div className="flex flex-wrap items-center gap-1 p-4 text-base border rounded-2xl bg-slate-50 border-slate-200">
                 {question.segments.map((seg) => {
-                    const isSelected = value.segmentId === seg.id;
+                    const isSelected = selectedSegmentId === seg.id;
+                    const isTheError = showFeedback && seg.id === question.correctSegmentId;
+
                     return (
                         <button
                             key={seg.id}
                             type="button"
                             disabled={disabled}
                             onClick={() => handleSelectSegment(seg.id)}
-                            className={`inline-flex flex-col items-center px-3 py-2 rounded-md transition-all ${isSelected
-                                ? 'bg-blue-600 text-white font-semibold ring-2 ring-blue-500 ring-offset-2'
-                                : 'bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-300 dark:border-zinc-700'
-                                }`}
-                        >
-                            <span>{seg.text}</span>
-                            {seg.label && (
-                                <span
-                                    className={`text-[10px] mt-0.5 font-bold ${isSelected ? 'text-blue-100' : 'text-zinc-400'
-                                        }`}
-                                >
-                                    ({seg.label})
-                                </span>
-                            )}
+                            className={`px-1.5 py-0.5 rounded-md transition-all ${isSelected
+                                ? 'bg-blue-100 text-blue-800 ring-2 ring-blue-400'
+                                : 'hover:bg-slate-200'
+                                } ${isTheError
+                                    ? 'bg-rose-100 text-rose-800 ring-2 ring-rose-400'
+                                    : ''
+                                } disabled:cursor-not-allowed`}>
+                            {seg.text}
                         </button>
                     );
                 })}
             </div>
 
-            {/* Correction Input */}
-            {value.segmentId && (
-                <div className="space-y-2">
-                    <label
-                        htmlFor="correction-input"
-                        className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-                    >
-                        Provide the correct replacement for the selected part:
-                    </label>
-                    <input
-                        id="correction-input"
-                        type="text"
-                        disabled={disabled}
-                        value={value.correction}
-                        onChange={handleCorrectionChange}
-                        placeholder="Type correct spelling or phrase..."
-                        className="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-blue-500 outline-none"
-                    />
+            <div className="space-y-1">
+                <label className="text-xs font-semibold uppercase text-slate-500">
+                    Nhập từ/cụm từ đúng:
+                </label>
+                <input
+                    type="text"
+                    value={correction}
+                    disabled={disabled}
+                    onChange={(e) => handleCorrectionChange(e.target.value)}
+                    placeholder="e.g. goes"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-400 focus:outline-none disabled:bg-slate-50"
+                />
+            </div>
+
+            {showFeedback && (
+                <div
+                    className={`p-3 rounded-xl border text-sm ${isCorrectSegment && isCorrectCorrection
+                        ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                        : 'bg-rose-50 border-rose-200 text-rose-800'
+                        }`}>
+                    {isCorrectSegment && isCorrectCorrection
+                        ? '✓ Chính xác!'
+                        : '✗ Chưa đúng. Xem gợi ý bên dưới.'}
+                    {question.explanation && (
+                        <p className="mt-1 text-xs opacity-80">{question.explanation}</p>
+                    )}
                 </div>
             )}
         </div>

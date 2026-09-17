@@ -7,24 +7,45 @@ interface Props {
     value?: number;
     onChange: (index: number) => void;
     disabled?: boolean;
+    showFeedback?: boolean;
 }
 
-export const MultipleChoiceRenderer: React.FC<Props> = ({question, value, onChange, disabled}) => {
+export const MultipleChoiceRenderer: React.FC<Props> = ({
+    question,
+    value,
+    onChange,
+    disabled = false,
+    showFeedback = false,
+}) => {
+    const isLocked = disabled || showFeedback;
+    const correctIndex = (question as any).correctIndex as number | undefined;
+
     return (
         <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{question.question}</h3>
+            <h3 className="text-lg font-semibold text-zinc-900">{question.question}</h3>
             <div className="space-y-2.5">
                 {question.options.map((option, idx) => {
                     const isSelected = value === idx;
+                    const isCorrect = showFeedback && correctIndex === idx;
+                    const isWrongSelected = showFeedback && isSelected && correctIndex !== undefined && correctIndex !== idx;
+
+                    let style = "border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-800";
+
+                    if (isCorrect) {
+                        style = "border-green-600 bg-green-50 text-green-900 font-semibold ring-2 ring-green-500";
+                    } else if (isWrongSelected) {
+                        style = "border-red-600 bg-red-50 text-red-900 font-semibold ring-2 ring-red-500";
+                    } else if (isSelected) {
+                        style = "border-blue-600 bg-blue-50 text-blue-950 font-semibold ring-2 ring-blue-500";
+                    }
+
                     return (
                         <button
                             key={idx}
                             type="button"
-                            disabled={disabled}
+                            disabled={isLocked}
                             onClick={() => onChange(idx)}
-                            className={`w-full p-4 text-left rounded-lg border transition-all ${isSelected
-                                ? "border-blue-600 bg-blue-50 dark:bg-blue-950/30 text-blue-950 dark:text-blue-100 font-semibold ring-2 ring-blue-500"
-                                : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200"
+                            className={`w-full p-4 text-left rounded-lg border transition-all ${style} ${isLocked ? "cursor-not-allowed" : ""
                                 }`}>
                             <span className="font-bold mr-3">{String.fromCharCode(65 + idx)}.</span>
                             {option}

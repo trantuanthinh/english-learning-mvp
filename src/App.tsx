@@ -6,7 +6,8 @@ import {ExamBuilder} from "./features/exam/ExamBuilder";
 import {ExamResultView} from "./features/exam/ExamResultView";
 import {PracticeConfig} from "./features/practice/PracticeConfig";
 import {PracticeSession} from "./features/practice/PracticeSession";
-import {TRIAL_LIMITS} from "./features/trial/trialConfig";
+import {TRIAL_LIMITS, isTrialExpired} from "./features/trial/trialConfig";
+import {TrialExpiredPage} from "./features/trial/TrialExpiredPage";
 import {TrialLimitModal} from "./features/trial/TrialLimitModal";
 import {type ExamConfig, generateExam} from "./services/examGenerator";
 import {getQuestionsByIds} from "./services/questionBank";
@@ -18,7 +19,7 @@ import {
     recordQuestionAttempt,
     recordTrialUse,
     saveProgress,
-    updateLessonComplete
+    updateLessonComplete,
 } from "./storage";
 import type {ExamResult, Lesson, Question, Track, TrialAction, UserProgress} from "./types";
 
@@ -124,6 +125,10 @@ function DashboardTab({
                 <p className="max-w-2xl mt-2 text-sm leading-relaxed text-blue-200 sm:text-base">
                     Tiếp tục hành trình chinh phục tiếng Anh với hệ thống bài học và ngân hàng câu hỏi thông minh.
                 </p>
+                <p className="mt-4 text-xs sm:text-sm font-medium text-amber-300/90 flex items-center gap-1.5">
+                    ⏳ Bản dùng thử chỉ mở đến{" "}
+                    <strong className="font-bold text-amber-200">8:00 sáng thứ 4, 23/09/2026</strong>.
+                </p>
             </div>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -132,9 +137,7 @@ function DashboardTab({
                         📚
                     </div>
                     <div>
-                        <p className="text-xs font-semibold tracking-wider uppercase text-slate-400">
-                            Bài học hoàn thành
-                        </p>
+                        <p className="text-xs font-semibold tracking-wider uppercase text-slate-400">Bài học hoàn thành</p>
                         <p className="text-2xl font-black text-slate-900 mt-0.5">
                             {progress.completedLessonIds.length}{" "}
                             <span className="text-sm font-medium text-slate-400">/ {LESSONS_DATA.length}</span>
@@ -146,9 +149,7 @@ function DashboardTab({
                         🎯
                     </div>
                     <div>
-                        <p className="text-xs font-semibold tracking-wider uppercase text-slate-400">
-                            Câu hỏi đã làm
-                        </p>
+                        <p className="text-xs font-semibold tracking-wider uppercase text-slate-400">Câu hỏi đã làm</p>
                         <p className="text-2xl font-black text-slate-900 mt-0.5">
                             {Object.keys(progress.questionStats || {}).length}
                         </p>
@@ -159,12 +160,8 @@ function DashboardTab({
                         📝
                     </div>
                     <div>
-                        <p className="text-xs font-semibold tracking-wider uppercase text-slate-400">
-                            Bài thi đã làm
-                        </p>
-                        <p className="text-2xl font-black text-slate-900 mt-0.5">
-                            {(progress.examHistory || []).length}
-                        </p>
+                        <p className="text-xs font-semibold tracking-wider uppercase text-slate-400">Bài thi đã làm</p>
+                        <p className="text-2xl font-black text-slate-900 mt-0.5">{(progress.examHistory || []).length}</p>
                     </div>
                 </div>
             </div>
@@ -303,9 +300,7 @@ function LessonsTab({
                 <div className="flex flex-col justify-between gap-4 p-4 bg-white border shadow-sm sm:flex-row sm:items-center rounded-2xl border-slate-200/80">
                     <div>
                         <h2 className="text-xl font-bold text-slate-900">Danh sách bài học</h2>
-                        <p className="text-xs text-slate-500">
-                            Lựa chọn bài học theo lộ trình lý thuyết & câu hỏi đi kèm.
-                        </p>
+                        <p className="text-xs text-slate-500">Lựa chọn bài học theo lộ trình lý thuyết & câu hỏi đi kèm.</p>
                     </div>
                     <div className="flex items-center pb-1 space-x-1 overflow-x-auto sm:pb-0">
                         {(["all", "grammar", "vocabulary", "pronunciation"] as const).map((t) => (
@@ -324,9 +319,7 @@ function LessonsTab({
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {LESSONS_DATA.filter(
-                        (l) => lessonTrackFilter === "all" || l.track === lessonTrackFilter,
-                    ).map((les) => {
+                    {LESSONS_DATA.filter((l) => lessonTrackFilter === "all" || l.track === lessonTrackFilter).map((les) => {
                         const isCompleted = progress.completedLessonIds.includes(les.id);
                         const trackInfo = TRACK_BADGES[les.track] || {
                             label: les.track,
@@ -406,9 +399,7 @@ function LessonsTab({
             {!lessonQuizActive ? (
                 <>
                     <div className="space-y-2">
-                        <h3 className="text-sm font-bold tracking-wider text-blue-600 uppercase">
-                            1. Lý thuyết
-                        </h3>
+                        <h3 className="text-sm font-bold tracking-wider text-blue-600 uppercase">1. Lý thuyết</h3>
                         <div className="p-4 text-sm leading-relaxed border bg-slate-50 rounded-2xl border-slate-200/80 text-slate-700">
                             {selectedLesson.content.theory}
                         </div>
@@ -416,20 +407,14 @@ function LessonsTab({
 
                     {selectedLesson.content.vocabularyList && (
                         <div className="space-y-2">
-                            <h3 className="text-sm font-bold tracking-wider uppercase text-emerald-600">
-                                2. Từ vựng
-                            </h3>
+                            <h3 className="text-sm font-bold tracking-wider uppercase text-emerald-600">2. Từ vựng</h3>
                             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                                 {selectedLesson.content.vocabularyList.map((v) => (
                                     <div
                                         key={v.word}
                                         className="p-3 text-sm border bg-emerald-50/50 border-emerald-200/60 rounded-xl">
                                         <span className="font-bold text-slate-900">{v.word}</span>
-                                        {v.phonetic && (
-                                            <span className="ml-2 text-xs text-slate-400">
-                                                {v.phonetic}
-                                            </span>
-                                        )}
+                                        {v.phonetic && <span className="ml-2 text-xs text-slate-400">{v.phonetic}</span>}
                                         <p className="text-slate-600 mt-0.5">{v.meaning}</p>
                                     </div>
                                 ))}
@@ -440,9 +425,7 @@ function LessonsTab({
                     {selectedLesson.content.examples && (
                         <div className="space-y-2">
                             <h3 className="text-sm font-bold tracking-wider uppercase text-amber-600">
-                                {selectedLesson.content.vocabularyList
-                                    ? "3. Ví dụ"
-                                    : "2. Ví dụ minh họa"}
+                                {selectedLesson.content.vocabularyList ? "3. Ví dụ" : "2. Ví dụ minh họa"}
                             </h3>
                             <div className="space-y-2">
                                 {selectedLesson.content.examples.map((ex, i) => (
@@ -484,23 +467,17 @@ function LessonsTab({
                 </>
             ) : (
                 <div className="space-y-6">
-                    <h3 className="text-sm font-bold tracking-wider text-blue-600 uppercase">
-                        Bài kiểm tra bài học
-                    </h3>
+                    <h3 className="text-sm font-bold tracking-wider text-blue-600 uppercase">Bài kiểm tra bài học</h3>
 
                     {!lessonQuizSubmitted ? (
                         <>
                             {lessonQuestions.map((q, idx) => (
                                 <div key={q.id} className="space-y-2">
-                                    <span className="text-xs font-bold text-slate-500">
-                                        Câu {idx + 1}
-                                    </span>
+                                    <span className="text-xs font-bold text-slate-500">Câu {idx + 1}</span>
                                     <QuestionRenderer
                                         question={q}
                                         userAnswer={lessonQuizAnswers[q.id]}
-                                        onAnswerChange={(val) =>
-                                            setLessonQuizAnswers((prev) => ({...prev, [q.id]: val}))
-                                        }
+                                        onAnswerChange={(val) => setLessonQuizAnswers((prev) => ({...prev, [q.id]: val}))}
                                     />
                                 </div>
                             ))}
@@ -577,7 +554,7 @@ function ReviewTab({
         const progress = getProgress();
         const attempts = progress.questionAttempts ?? [];
 
-        const latestByQuestion = new Map<string, {attempt: typeof attempts[number];}>();
+        const latestByQuestion = new Map<string, {attempt: (typeof attempts)[number];}>();
         attempts.forEach((a) => {
             const prev = latestByQuestion.get(a.questionId);
             if (!prev || a.timestamp > prev.attempt.timestamp) {
@@ -668,16 +645,15 @@ function ReviewTab({
                 <div className="p-6 bg-white border shadow-sm rounded-2xl border-slate-200/80">
                     <h2 className="text-xl font-bold text-slate-900">🔁 Ôn lại câu sai</h2>
                     <p className="mt-1 text-sm text-slate-500">
-                        Chỉ hiện những câu có lần trả lời gần nhất là sai. Khi bạn trả lời đúng, câu đó sẽ biến mất khỏi danh sách.
+                        Chỉ hiện những câu có lần trả lời gần nhất là sai. Khi bạn trả lời đúng, câu đó sẽ biến mất khỏi danh
+                        sách.
                     </p>
                 </div>
 
                 {entries.length === 0 ? (
                     <div className="p-8 text-center bg-white border shadow-sm rounded-2xl border-slate-200/80">
                         <p className="text-4xl">🎉</p>
-                        <p className="mt-3 text-sm font-semibold text-slate-700">
-                            Không còn câu sai nào cần ôn. Tuyệt vời!
-                        </p>
+                        <p className="mt-3 text-sm font-semibold text-slate-700">Không còn câu sai nào cần ôn. Tuyệt vời!</p>
                         <button
                             type="button"
                             onClick={onGoPractice}
@@ -688,9 +664,7 @@ function ReviewTab({
                 ) : (
                     <div className="p-6 space-y-4 bg-white border shadow-sm rounded-2xl border-slate-200/80">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-bold text-slate-900">
-                                {entries.length} câu cần ôn lại
-                            </h3>
+                            <h3 className="text-lg font-bold text-slate-900">{entries.length} câu cần ôn lại</h3>
                             <button
                                 type="button"
                                 onClick={startSession}
@@ -708,9 +682,7 @@ function ReviewTab({
                                             <span className="text-sm font-semibold text-slate-700">
                                                 {TRACK_BADGES[track]?.label || track}
                                             </span>
-                                            <span className="text-xs font-bold text-rose-600">
-                                                {list.length} câu
-                                            </span>
+                                            <span className="text-xs font-bold text-rose-600">{list.length} câu</span>
                                         </div>
                                         <ul className="pl-4 space-y-1 border-l border-slate-100">
                                             {list.slice(0, 5).map((e) => (
@@ -773,22 +745,19 @@ function ReviewTab({
             <QuestionRenderer
                 question={currentQuestion}
                 userAnswer={answers[currentQuestion.id]}
-                onAnswerChange={(val) =>
-                    setAnswers((prev) => ({...prev, [currentQuestion.id]: val}))
-                }
+                onAnswerChange={(val) => setAnswers((prev) => ({...prev, [currentQuestion.id]: val}))}
                 showFeedback={isSubmitted}
                 disabled={isSubmitted}
             />
 
             {isSubmitted && (
-                <div className={`p-4 rounded-2xl border text-sm space-y-2 ${evalResult.isCorrect
-                    ? "bg-emerald-50 border-emerald-200 text-emerald-800"
-                    : "bg-rose-50 border-rose-200 text-rose-800"
-                    }`}>
+                <div
+                    className={`p-4 rounded-2xl border text-sm space-y-2 ${evalResult.isCorrect
+                        ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                        : "bg-rose-50 border-rose-200 text-rose-800"
+                        }`}>
                     <p className="font-bold">
-                        {evalResult.isCorrect
-                            ? "✓ Chính xác! Câu này sẽ được gỡ khỏi danh sách ôn."
-                            : "✗ Chưa đúng"}
+                        {evalResult.isCorrect ? "✓ Chính xác! Câu này sẽ được gỡ khỏi danh sách ôn." : "✗ Chưa đúng"}
                     </p>
                     {currentQuestion.explanation && (
                         <p className="leading-relaxed">
@@ -797,9 +766,7 @@ function ReviewTab({
                         </p>
                     )}
                     {!currentQuestion.explanation && !evalResult.isCorrect && (
-                        <p className="italic opacity-80">
-                            Chưa có giải thích chi tiết cho câu hỏi này.
-                        </p>
+                        <p className="italic opacity-80">Chưa có giải thích chi tiết cho câu hỏi này.</p>
                     )}
                 </div>
             )}
@@ -919,35 +886,21 @@ function FlashcardTab({
                 className="w-full min-h-70 flex flex-col items-center justify-center p-8 text-center bg-white border-2 shadow-md rounded-3xl border-slate-200 hover:border-blue-400 transition-all">
                 {!revealed ? (
                     <>
-                        <p className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
-                            {currentCard.word}
-                        </p>
-                        {currentCard.phonetic && (
-                            <p className="mt-3 text-base text-slate-400">{currentCard.phonetic}</p>
-                        )}
+                        <p className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">{currentCard.word}</p>
+                        {currentCard.phonetic && <p className="mt-3 text-base text-slate-400">{currentCard.phonetic}</p>}
                         <p className="mt-8 text-xs font-semibold tracking-widest uppercase text-blue-600">
                             Nhấn để xem nghĩa
                         </p>
                     </>
                 ) : (
                     <>
-                        <p className="text-2xl font-bold text-slate-900 sm:text-3xl">
-                            {currentCard.word}
-                        </p>
-                        {currentCard.phonetic && (
-                            <p className="mt-2 text-sm text-slate-400">{currentCard.phonetic}</p>
-                        )}
-                        <p className="mt-6 text-lg font-semibold text-blue-600 sm:text-xl">
-                            = {currentCard.meaning}
-                        </p>
+                        <p className="text-2xl font-bold text-slate-900 sm:text-3xl">{currentCard.word}</p>
+                        {currentCard.phonetic && <p className="mt-2 text-sm text-slate-400">{currentCard.phonetic}</p>}
+                        <p className="mt-6 text-lg font-semibold text-blue-600 sm:text-xl">= {currentCard.meaning}</p>
                         {currentCard.example ? (
-                            <p className="mt-6 text-sm italic text-slate-500 sm:text-base">
-                                “{currentCard.example}”
-                            </p>
+                            <p className="mt-6 text-sm italic text-slate-500 sm:text-base">“{currentCard.example}”</p>
                         ) : (
-                            <p className="mt-6 text-xs italic text-slate-300">
-                                (Chưa có ví dụ cho từ này)
-                            </p>
+                            <p className="mt-6 text-xs italic text-slate-300">(Chưa có ví dụ cho từ này)</p>
                         )}
                     </>
                 )}
@@ -985,12 +938,7 @@ function PracticeTab({onTryConsume}: TabTrialProps) {
         );
     }
 
-    return (
-        <PracticeSession
-            questions={activePracticeQuestions}
-            onFinish={() => setActivePracticeQuestions(null)}
-        />
-    );
+    return <PracticeSession questions={activePracticeQuestions} onFinish={() => setActivePracticeQuestions(null)} />;
 }
 
 function ExamTab({
@@ -1153,10 +1101,21 @@ export function App() {
     const [activeTab, setActiveTab] = useState<NavigationTab>("dashboard");
     const [progress, setProgress] = useState<UserProgress>(getProgress());
     const [blockedAction, setBlockedAction] = useState<TrialAction | null>(null);
+    const [trialExpired, setTrialExpired] = useState<boolean>(() => isTrialExpired());
 
     useEffect(() => {
         setProgress(getProgress());
     }, []);
+
+    useEffect(() => {
+        if (trialExpired) return;
+
+        const interval = setInterval(() => {
+            if (isTrialExpired()) setTrialExpired(true);
+        }, 60_000);
+
+        return () => clearInterval(interval);
+    }, [trialExpired]);
 
     const weakTopics = useMemo(() => {
         const stats = progress.questionStats || {};
@@ -1187,11 +1146,17 @@ export function App() {
     const refreshProgress = () => setProgress(getProgress());
 
     const tryConsume = (action: TrialAction): boolean => {
+        if (isTrialExpired()) {
+            setTrialExpired(true);
+            return false;
+        }
+
         const usage = getTrialUsage();
         if ((usage[action] ?? 0) >= TRIAL_LIMITS[action]) {
             setBlockedAction(action);
             return false;
         }
+
         recordTrialUse(action);
         setProgress(getProgress());
         return true;
@@ -1201,6 +1166,10 @@ export function App() {
         setActiveTab(tab);
         setProgress(getProgress());
     };
+
+    if (trialExpired) {
+        return <TrialExpiredPage />;
+    }
 
     return (
         <div className="min-h-screen pb-12 font-sans antialiased bg-slate-50 text-slate-800">
@@ -1217,7 +1186,9 @@ export function App() {
                     </button>
 
                     <div className="flex items-center gap-2">
-                        <nav className="flex items-center space-x-1 overflow-x-auto sm:space-x-2" aria-label="Main navigation">
+                        <nav
+                            className="flex items-center space-x-1 overflow-x-auto sm:space-x-2"
+                            aria-label="Main navigation">
                             {NAV_ITEMS.map((item) => (
                                 <button
                                     key={item.id}
@@ -1239,19 +1210,11 @@ export function App() {
 
             <main className="px-4 pt-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
                 {activeTab === "dashboard" && (
-                    <DashboardTab
-                        progress={progress}
-                        weakTopics={weakTopics}
-                        onSwitchTab={switchTab}
-                    />
+                    <DashboardTab progress={progress} weakTopics={weakTopics} onSwitchTab={switchTab} />
                 )}
 
                 {activeTab === "lessons" && (
-                    <LessonsTab
-                        progress={progress}
-                        onProgressChange={refreshProgress}
-                        onTryConsume={tryConsume}
-                    />
+                    <LessonsTab progress={progress} onProgressChange={refreshProgress} onTryConsume={tryConsume} />
                 )}
 
                 {activeTab === "cheatsheet" && <CheatsheetView />}
@@ -1266,12 +1229,7 @@ export function App() {
                     />
                 )}
 
-                {activeTab === "flashcards" && (
-                    <FlashcardTab
-                        onProgressChange={refreshProgress}
-                        onTryConsume={tryConsume}
-                    />
-                )}
+                {activeTab === "flashcards" && <FlashcardTab onProgressChange={refreshProgress} onTryConsume={tryConsume} />}
 
                 {activeTab === "exam" && (
                     <ExamTab
@@ -1282,12 +1240,7 @@ export function App() {
                 )}
             </main>
 
-            {blockedAction && (
-                <TrialLimitModal
-                    action={blockedAction}
-                    onClose={() => setBlockedAction(null)}
-                />
-            )}
+            {blockedAction && <TrialLimitModal action={blockedAction} onClose={() => setBlockedAction(null)} />}
         </div>
     );
 }

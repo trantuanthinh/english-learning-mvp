@@ -5,7 +5,6 @@ import {ListeningRenderer} from "./renderers/ListeningRenderer";
 import {MultipleChoiceRenderer} from "./renderers/MultipleChoiceRenderer";
 import {SpeakingRenderer} from "./renderers/SpeakingRenderer";
 
-
 interface QuestionRendererProps {
     question: Question;
     userAnswer: any;
@@ -25,55 +24,58 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
         <div className="w-full bg-white dark:bg-zinc-900 rounded-xl p-6 border border-zinc-200 dark:border-zinc-800 shadow-sm">
             <div className="flex items-center justify-between gap-3 mb-4">
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
-                    {question.track} • {question.type.replace('-', ' ')}
+                    {question.track} • {question.type.replace("-", " ")}
                 </span>
-                <span className="text-xs font-medium text-zinc-500 capitalize">
-                    {question.difficulty}
-                </span>
+                <span className="text-xs font-medium text-zinc-500 capitalize">{question.difficulty}</span>
             </div>
 
-            {question.type === 'multiple-choice' && (
+            {question.type === "multiple-choice" && (
                 <MultipleChoiceRenderer
                     question={question}
                     value={userAnswer}
                     onChange={onAnswerChange}
                     disabled={disabled}
+                    showFeedback={showFeedback}
                 />
             )}
 
-            {question.type === 'fill-blank' && (
+            {question.type === "fill-blank" && (
                 <FillBlankRenderer
                     question={question}
                     value={userAnswer}
                     onChange={onAnswerChange}
                     disabled={disabled}
+                    showFeedback={showFeedback}
                 />
             )}
 
-            {question.type === 'error-correction' && (
+            {question.type === "error-correction" && (
                 <ErrorCorrectionRenderer
                     question={question}
                     userAnswer={userAnswer}
                     onAnswerChange={onAnswerChange}
                     disabled={disabled}
+                    showFeedback={showFeedback}
                 />
             )}
 
-            {question.type === 'listening' && (
+            {question.type === "listening" && (
                 <ListeningRenderer
                     question={question}
                     value={userAnswer}
                     onChange={onAnswerChange}
                     disabled={disabled}
+                    showFeedback={showFeedback}
                 />
             )}
 
-            {question.type === 'speaking' && (
+            {question.type === "speaking" && (
                 <SpeakingRenderer
                     question={question}
                     value={userAnswer}
                     onChange={onAnswerChange}
                     disabled={disabled}
+                    showFeedback={showFeedback}
                 />
             )}
 
